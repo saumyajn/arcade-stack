@@ -15,7 +15,7 @@ import {
   useTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { Link, useNavigate } from 'react-router-dom';

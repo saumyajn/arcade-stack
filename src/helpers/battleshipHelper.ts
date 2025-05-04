@@ -158,7 +158,7 @@ export default function useBattleshipGame() {
   };
 
   const handleCpuTurn = (
-    prevAttacks: Attack[],
+    _prevAttacks: Attack[],
     prevCpuAttacks: Attack[],
     playerShips: ShipPlacement[]
   ) => {

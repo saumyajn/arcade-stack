@@ -1,4 +1,4 @@
-import { Box, Typography, Paper, Chip, Divider, Fade } from "@mui/material";
+import { Box, Typography, Chip, Divider, Fade } from "@mui/material";
 import { useEffect, useState } from "react";
 
 const techStack = ["React", "TypeScript", "Vite", "MUI", "Firebase"];
