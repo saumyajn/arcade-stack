@@ -9,7 +9,7 @@ import {
   Button,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 const games = [
   {
     name: 'Rock Paper Scissors',
@@ -42,11 +42,23 @@ const games = [
 ];
 
 const MotionCard = motion(Card);
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15
+    }
+  }
+};
 
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
 const Home = () => {
   return (
     <Box textAlign="center" sx={{ py: 6, px: 2 }}>
-      {/* Hero Section */}
       <Typography
         variant="h2"
         gutterBottom
@@ -63,11 +75,18 @@ const Home = () => {
       </Typography>
 
       {/* Game Grid */}
-      <Grid container spacing={4} justifyContent="center">
+      <Grid
+        container
+        spacing={4}
+        justifyContent="center"
+        component={motion.div} // Animate the container
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible">
         {games.map((game, index) => (
-          <Grid sx={{ xs: 12, sm: 6, md: 4 }} key={index}>
+          <Grid sx={{ xs: 12, sm: 6, md: 4 }} key={index} component={motion.div} variants={itemVariants}>
             <MotionCard
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, translateY: -5 }}
               transition={{ duration: 0.3 }}
               elevation={4}
               sx={{
@@ -76,15 +95,17 @@ const Home = () => {
                 flexDirection: 'column',
                 height: '100%',
                 backgroundColor: game.disabled ? '#f1f1f1' : 'white',
+                overflow: 'hidden'
               }}
             >
               <CardMedia
+              
                 component="img"
                 image={game.image}
                 alt={game.name}
                 height="180"
-                sx={{ objectFit: 'contain' }}
-              />
+                loading="lazy"
+                sx={{ objectFit: 'contain', p: 2, bgcolor: 'rgba(0,0,0,0.02)' }} />
               <CardContent>
                 <Typography
                   variant="h6"

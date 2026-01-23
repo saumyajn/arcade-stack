@@ -1,185 +1,217 @@
-// Battleship.tsx
-import { Box, Typography, Grid, Button, Paper } from '@mui/material';
-import useBattleshipGame from '../../helpers/battleshipHelper';
-
-const ships = [
-  { id: 'carrier', size: 5 },
-  { id: 'battleship', size: 4 },
-  { id: 'cruiser', size: 3 },
-  { id: 'submarine', size: 3 },
-  { id: 'destroyer', size: 2 },
-];
+import React from 'react';
+import { Box, Typography, Grid, Button, Paper, Alert, Stack } from '@mui/material';
+import useBattleshipGame, { ships,  } from '../../helpers/battleshipHelper';
+// import { useHighScore } from '../../hooks/useHighScore'; // Uncomment if hook is created
 
 const GRID_SIZE = 10;
 
+// Optimized Cell Component to prevent re-renders
+const GridCell = React.memo(({ 
+  type, status, onClick, onDrop, onDragOver 
+}: { 
+  x: number, y: number, type: 'player' | 'enemy', 
+  status: 'empty' | 'ship' | 'hit' | 'miss', 
+  onClick?: () => void, 
+  onDrop?: (e: React.DragEvent) => void,
+  onDragOver?: (e: React.DragEvent) => void
+}) => {
+  
+  let bg = '#e3f2fd'; // Default water
+  let content = '';
+
+  if (status === 'ship') bg = '#66b8fc'; // Ship placed
+  if (status === 'hit') { bg = '#ef5350'; content = '💥'; }
+  if (status === 'miss') { bg = '#bdbdbd'; content = '🌊'; }
+
+  return (
+    <Box
+      onClick={onClick}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      sx={{
+        width: 32,
+        height: 32,
+        backgroundColor: bg,
+        border: '1px solid rgba(0,0,0,0.1)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: type === 'enemy' && status === 'empty' ? 'crosshair' : 'default',
+        fontSize: '1.2rem',
+        transition: 'background-color 0.2s',
+        '&:hover': {
+          backgroundColor: type === 'enemy' && status === 'empty' ? '#bbdefb' : bg
+        }
+      }}
+    >
+      {content}
+    </Box>
+  );
+});
+
 const Battleship = () => {
   const {
+    gameState,
     placedShips,
     setPlacedShips,
     shipOrientation,
-    attacks,
-    cpuAttacks,
-    gameOver,
-    youWin,
     toggleOrientation,
     setDraggingShip,
     handleDrop,
     handleAttack,
+    attacks,
+    cpuAttacks,
+    winner,
+    startGame,
+    resetGame
   } = useBattleshipGame();
 
+  // const highScore = useHighScore('battleship', winner === 'player' ? 100 : 0); // Example usage
+
+  // --- Helper to calculate cell status for rendering ---
+  const getCellStatus = (x: number, y: number, isPlayerBoard: boolean): 'empty' | 'ship' | 'hit' | 'miss' => {
+    if (isPlayerBoard) {
+      const attack = cpuAttacks.find(a => a.x === x && a.y === y);
+      const hasShip = placedShips.some(ship => {
+        const size = ships.find(s => s.id === ship.id)?.size || 0;
+        return ship.orientation === 'horizontal' 
+          ? y === ship.y && x >= ship.x && x < ship.x + size
+          : x === ship.x && y >= ship.y && y < ship.y + size;
+      });
+
+      if (attack) return attack.hit ? 'hit' : 'miss';
+      if (hasShip) return 'ship';
+      return 'empty';
+    } else {
+      // Enemy Board
+      const attack = attacks.find(a => a.x === x && a.y === y);
+      if (attack) return attack.hit ? 'hit' : 'miss';
+      return 'empty';
+    }
+  };
+
   return (
-    <Box textAlign="center" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Battleship — Player vs CPU
+    <Box textAlign="center" sx={{ py: 4, maxWidth: 900, mx: 'auto' }}>
+      <Typography variant="h3" gutterBottom sx={{ fontFamily: 'Baloo 2' }}>
+        Battleship
       </Typography>
 
-      <Button
-        onClick={toggleOrientation}
-        variant="outlined"
-        size="small"
-        sx={{ mb: 3 }}
-      >
-        Rotate Ships ({shipOrientation})
-      </Button>
-
-      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap', mb: 4 }}>
-        {ships.map((ship) => {
-          const alreadyPlaced = placedShips.find((s: any) => s.id === ship.id);
-          if (alreadyPlaced) return null;
-
-          return (
-            <Paper
-              key={ship.id}
-              draggable
-              onDragStart={() =>
-                setDraggingShip({ ...ship, orientation: shipOrientation })
-              }
-              onDoubleClick={toggleOrientation}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                toggleOrientation();
-              }}
-              sx={{
-                width: shipOrientation === 'horizontal'
-                  ? ship.size * 32 + (ship.size - 1) * 4
-                  : 32,
-                height: shipOrientation === 'horizontal'
-                  ? 32
-                  : ship.size * 32 + (ship.size - 1) * 4,
-                background: '#90caf9',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 1,
-                cursor: 'grab',
-                fontSize: 14,
-                userSelect: 'none',
-                writingMode: shipOrientation === 'vertical' ? 'vertical-rl' : 'horizontal-tb',
-              }}
-            >
-              {ship.id}
-            </Paper>
-          );
-        })}
-        {gameOver && (
-          <Typography variant="h6" sx={{ mt: 2, color: youWin ? 'green' : 'red' }}>
-            {youWin ? '🎉 You Win! All enemy ships sunk!' : '💥 CPU Wins! All your ships are destroyed.'}
+      {/* Game Over Banner */}
+      {gameState === 'gameOver' && (
+        <Alert 
+          severity={winner === 'player' ? 'success' : 'error'} 
+          sx={{ mb: 3, justifyContent: 'center' }}
+        >
+          <Typography variant="h6">
+            {winner === 'player' ? '🎉 Victory! You sank the enemy fleet!' : '💀 Defeat! Your fleet is destroyed.'}
           </Typography>
+        </Alert>
+      )}
+
+      {/* Control Panel */}
+      <Stack direction="row" spacing={2} justifyContent="center" mb={4}>
+        {gameState === 'placing' ? (
+          <>
+            <Button variant="contained" onClick={startGame} disabled={placedShips.length !== 5}>
+              Start Battle
+            </Button>
+            <Button variant="outlined" onClick={toggleOrientation}>
+              Rotate: {shipOrientation.toUpperCase()}
+            </Button>
+            <Button color="error" onClick={() => setPlacedShips([])}>Clear Board</Button>
+          </>
+        ) : (
+          <Button variant="contained" color="warning" onClick={resetGame}>
+            Reset Game
+          </Button>
         )}
-      </Box>
+      </Stack>
 
+      {/* Ship Dock (Only during placement) */}
+      {gameState === 'placing' && (
+        <Paper sx={{ p: 2, mb: 4, bgcolor: '#f5f5f5', display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Typography width="100%" variant="subtitle2" color="textSecondary">Drag ships to your board</Typography>
+          {ships.map((ship) => {
+            const isPlaced = placedShips.some(s => s.id === ship.id);
+            if (isPlaced) return null;
+
+            return (
+              <Box
+                key={ship.id}
+                draggable
+                onDragStart={() => setDraggingShip({ ...ship, orientation: shipOrientation })}
+                sx={{
+                  width: shipOrientation === 'horizontal' ? ship.size * 32 : 32,
+                  height: shipOrientation === 'horizontal' ? 32 : ship.size * 32,
+                  bgcolor: '#90caf9',
+                  border: '1px solid #1976d2',
+                  cursor: 'grab',
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  fontSize: '0.75rem'
+                }}
+              >
+                {ship.id.slice(0, 2).toUpperCase()}
+              </Box>
+            );
+          })}
+        </Paper>
+      )}
+
+      {/* Boards Grid */}
       <Grid container spacing={4} justifyContent="center">
-        <Grid>
-          <Typography variant="h6" gutterBottom>
-            Your Board
-          </Typography>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${GRID_SIZE}, 32px)`,
-              gap: '4px',
-            }}
-          >
+        {/* Player Board */}
+        <Grid item>
+          <Typography variant="h6" gutterBottom color="primary">Your Fleet</Typography>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: `repeat(${GRID_SIZE}, 32px)`, 
+            gap: 0, 
+            border: '2px solid #333' 
+          }}>
             {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
               const x = i % GRID_SIZE;
               const y = Math.floor(i / GRID_SIZE);
-              const occupied = placedShips.some((ship: any) => {
-                const size = ships.find(s => s.id === ship.id)!.size;
-                return ship.orientation === 'horizontal'
-                  ? y === ship.y && x >= ship.x && x < ship.x + size
-                  : x === ship.x && y >= ship.y && y < ship.y + size;
-              });
-              const attack = cpuAttacks.find((a: any) => a.x === x && a.y === y);
-              let bg = '#e0e0e0';
-              if (occupied) bg = '#42a5f5';
-              if (attack) bg = attack.hit ? '#ef5350' : '#90a4ae';
-
               return (
-                <Box
-                  key={i}
+                <GridCell
+                  key={`player-${i}`}
+                  x={x} y={y}
+                  type="player"
+                  status={getCellStatus(x, y, true)}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => handleDrop(e, x, y)}
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    background: bg,
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                  }}
                 />
               );
             })}
-          </Box>
-          <Box sx={{ mt: 2 }}>
-            <Button variant="contained"  sx={{ m: 2 }} color="success" disabled={placedShips.length !== 5}>
-              Ready
-            </Button>
-            <Button sx={{ m: 2 }}
-              variant="outlined"
-              color="error"
-              onClick={() => setPlacedShips([])}
-            >
-              Reset
-            </Button>
           </Box>
         </Grid>
 
-        <Grid>
-          <Typography variant="h6" gutterBottom>
-            Enemy Waters
-          </Typography>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${GRID_SIZE}, 32px)`,
-              gap: '4px',
-            }}
-          >
+        {/* Enemy Board */}
+        <Grid item>
+          <Typography variant="h6" gutterBottom color="error">Enemy Waters</Typography>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: `repeat(${GRID_SIZE}, 32px)`, 
+            gap: 0, 
+            border: '2px solid #333',
+            opacity: gameState === 'placing' ? 0.5 : 1,
+            pointerEvents: gameState === 'placing' || gameState === 'gameOver' ? 'none' : 'auto'
+          }}>
             {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
               const x = i % GRID_SIZE;
               const y = Math.floor(i / GRID_SIZE);
-              const attack = attacks.find((a: any) => a.x === x && a.y === y);
-              let bg = '#e0e0e0';
-              if (attack) bg = attack.hit ? '#ef5350' : '#90a4ae';
-
               return (
-                <Box
-                  key={i}
+                <GridCell
+                  key={`enemy-${i}`}
+                  x={x} y={y}
+                  type="enemy"
+                  status={getCellStatus(x, y, false)}
                   onClick={() => handleAttack(x, y)}
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    background: bg,
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                    cursor: attack || gameOver ? 'default' : 'pointer',
-                    transition: 'background 0.3s ease',
-                  }}
                 />
               );
             })}
           </Box>
-
         </Grid>
       </Grid>
     </Box>

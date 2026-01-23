@@ -86,6 +86,8 @@ import {
           {choices.map((choice) => (
             <Grid  key={choice}>
               <MotionButton
+              key={choice}
+              aria-label={`Choose ${choice}`}
                 variant="contained"
                 color="primary"
                 onClick={() => play(choice)}
