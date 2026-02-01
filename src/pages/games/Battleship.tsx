@@ -162,7 +162,7 @@ const Battleship = () => {
       {/* Boards Grid */}
       <Grid container spacing={4} justifyContent="center">
         {/* Player Board */}
-        <Grid item>
+        <Grid>
           <Typography variant="h6" gutterBottom color="primary">Your Fleet</Typography>
           <Box sx={{ 
             display: 'grid', 
@@ -188,7 +188,7 @@ const Battleship = () => {
         </Grid>
 
         {/* Enemy Board */}
-        <Grid item>
+        <Grid>
           <Typography variant="h6" gutterBottom color="error">Enemy Waters</Typography>
           <Box sx={{ 
             display: 'grid', 
