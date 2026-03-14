@@ -118,6 +118,9 @@ const Header: React.FC = () => {
               <MenuItem onClick={() => navigateTo('/games/rock-paper-scissors')}>Rock Paper Scissors</MenuItem>
               <MenuItem onClick={() => navigateTo('/games/battleship')}>Battleship</MenuItem>
               <MenuItem onClick={() => navigateTo('/games/unscramble')}>Word Scramble</MenuItem>
+
+                <MenuItem onClick={() => navigateTo('/games/treasure-island')}>Treasure Island</MenuItem>
+              <MenuItem onClick={() => navigateTo('/games/hangman')}>Hangman</MenuItem>
             </Menu>
 
             <Button color="inherit" onClick={() => navigateTo('/about')}>About</Button>
@@ -160,6 +163,12 @@ const Header: React.FC = () => {
                       </ListItem>
                       <ListItem sx={{ pl: 4, cursor: 'pointer' }} onClick={() => navigateTo('/games/unscramble')}>
                         <ListItemText primary="Word Scramble" />
+                      </ListItem>
+                       <ListItem sx={{ pl: 4, cursor: 'pointer' }} onClick={() => navigateTo('/games/treasure-island')}>
+                        <ListItemText primary="Treasure Island" />
+                      </ListItem>
+                      <ListItem sx={{ pl: 4, cursor: 'pointer' }} onClick={() => navigateTo('/games/hangman')}>
+                        <ListItemText primary="Hangman" />
                       </ListItem>
                     </List>
                   </Collapse>

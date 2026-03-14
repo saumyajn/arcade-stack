@@ -1,44 +1,43 @@
-/* eslint-disable no-restricted-globals */
-/* eslint-disable no-undef */
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js");
 
-// Load Pyodide from the CDN (or local public folder if you prefer)
-importScripts("https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js");
+let pyodideReadyPromise;
 
-let pyodide = null;
-
-async function loadEngine() {
-  pyodide = await loadPyodide();
+async function load() {
+  self.pyodide = await loadPyodide();
+  self.postMessage({ type: 'ready' });
 }
 
-let pyodideReadyPromise = loadEngine();
+pyodideReadyPromise = load();
 
 self.onmessage = async (event) => {
-  const { id, python, inputs, files } = event.data;
-
+  const { id, code, cmd, reset } = event.data;
+  await pyodideReadyPromise;
+  
   try {
-    await pyodideReadyPromise;
+    let output = "";
+    
+    // Intercept standard output
+    self.pyodide.setStdout({ batched: (msg) => { output += msg + "\n"; } });
+    self.pyodide.setStderr({ batched: (msg) => { output += msg + "\n"; } });
 
-    if(files && files.length > 0){
-      for(const file of files){
-        pyodide.FS.writeFile(file.name, file.content);
-      }
+    // INJECT INPUT: Set the global "cmd" variable so your Python scripts can read it!
+    self.pyodide.globals.set("cmd", cmd || "");
+
+    // RESTART LOGIC: If restarting the game, force the Python 'step' variable back to 0
+    if (reset) {
+        self.pyodide.globals.set("step", 0);
     }
-    if (inputs) {
-      for (const key of Object.keys(inputs)) {
-        pyodide.globals.set(key, inputs[key]);
-      }
-    }
 
-    let output = [];
-    pyodide.setStdout({ batched: (msg) => output.push(msg) });
+    // Run the python script
+    await self.pyodide.runPythonAsync(code);
+    
+    self.postMessage({ 
+        type: 'result', 
+        result: output, 
+        id 
+    });
 
-
-    await pyodide.loadPackagesFromImports(python);
-    await pyodide.runPythonAsync(python);
-
-    self.postMessage({ id, results: output.join('\n'), error: null });
-
-  } catch (error) {
-    self.postMessage({ id, results: null, error: error.message });
+  } catch (err) {
+    self.postMessage({ type: 'error', error: err.message, id });
   }
 };
