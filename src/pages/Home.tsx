@@ -33,6 +33,20 @@ const games = [
     disabled: false,
   },
   {
+    name: 'Treasure Island',
+    image: '/assets/images/treasure-island.png',
+    path: '/games/treasure-island',
+    description: 'A classic text-based adventure game written in Python. Make choices to find the hidden treasure!',
+    disabled: false,
+  },
+  {
+    name: 'Hangman',
+    image: '/assets/images/hangman.png',
+    path: '/games/hangman',
+    description: 'The classic word guessing game, powered by Python in your browser.',
+    disabled: false,
+  },
+  {
     name: 'Coming Soon',
     image: '/assets/images/coming-soon.png',
     path: '',
