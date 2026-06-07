@@ -1,54 +1,53 @@
-# React + TypeScript + Vite
+# Arcade Stack
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Arcade Stack is a React + TypeScript mini-game platform that combines browser games, animated UI, local game state, API fallback handling, and Python execution through Pyodide.
 
-Currently, two official plugins are available:
+## Why This Project Matters
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This project is useful as a recruiter-facing frontend case study because it is not just a static UI. It shows:
 
-## Expanding the ESLint configuration
+- Modular game routes with lazy loading.
+- Multiple interaction models: turn-based logic, drag and drop, text input, scoring, and reset flows.
+- Python scripts running in the browser through a web worker.
+- A real fallback path for network-dependent gameplay.
+- A roadmap toward leaderboards, user stats, and testable game engines.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Current Games
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Rock Paper Scissors
+- Battleship
+- Word Scramble
+- Treasure Island
+- Hangman
+
+## Tech Stack
+
+- React 19
+- TypeScript
+- Vite
+- Material UI
+- Framer Motion
+- Pyodide web worker
+
+## Local Development
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Verification
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm run lint
+npm run build
 ```
+
+## Production Readiness Roadmap
+
+- Add Playwright smoke tests for every game route.
+- Add keyboard accessibility coverage for Battleship and game controls.
+- Move shared game metadata into one module used by the home page and navigation.
+- Add persistent local high scores, then optional authenticated leaderboards.
+- Add generated or custom cover assets for Python games instead of placeholders.
+- Add error boundaries around Pyodide initialization and remote word API calls.

@@ -1,7 +1,299 @@
 import random
-import requests
-from hangman_art import logo, stages
-from hangman_words import backup_word_list
+import json
+
+backup_word_list = [
+    "abruptly",
+    "absurd",
+    "abyss",
+    "affix",
+    "askew",
+    "avenue",
+    "awkward",
+    "axiom",
+    "azure",
+    "bagpipes",
+    "bandwagon",
+    "banjo",
+    "bayou",
+    "beekeeper",
+    "bikini",
+    "blitz",
+    "blizzard",
+    "boggle",
+    "bookworm",
+    "boxcar",
+    "boxful",
+    "buckaroo",
+    "buffalo",
+    "buffoon",
+    "buxom",
+    "buzzard",
+    "buzzing",
+    "buzzwords",
+    "caliph",
+    "cobweb",
+    "cockiness",
+    "croquet",
+    "crypt",
+    "curacao",
+    "cycle",
+    "daiquiri",
+    "dirndl",
+    "disavow",
+    "dizzying",
+    "duplex",
+    "dwarves",
+    "embezzle",
+    "equip",
+    "espionage",
+    "euouae",
+    "exodus",
+    "faking",
+    "fishhook",
+    "fixable",
+    "fjord",
+    "flapjack",
+    "flopping",
+    "fluffiness",
+    "flyby",
+    "foxglove",
+    "frazzled",
+    "frizzled",
+    "fuchsia",
+    "funny",
+    "gabby",
+    "galaxy",
+    "galvanize",
+    "gazebo",
+    "giaour",
+    "gizmo",
+    "glowworm",
+    "glyph",
+    "gnarly",
+    "gnostic",
+    "gossip",
+    "grogginess",
+    "haiku",
+    "haphazard",
+    "hyphen",
+    "iatrogenic",
+    "icebox",
+    "injury",
+    "ivory",
+    "ivy",
+    "jackpot",
+    "jaundice",
+    "jawbreaker",
+    "jaywalk",
+    "jazziest",
+    "jazzy",
+    "jelly",
+    "jigsaw",
+    "jinx",
+    "jiujitsu",
+    "jockey",
+    "jogging",
+    "joking",
+    "jovial",
+    "joyful",
+    "juicy",
+    "jukebox",
+    "jumbo",
+    "kayak",
+    "kazoo",
+    "keyhole",
+    "khaki",
+    "kilobyte",
+    "kiosk",
+    "kitsch",
+    "kiwifruit",
+    "klutz",
+    "knapsack",
+    "larynx",
+    "lengths",
+    "lucky",
+    "luxury",
+    "lymph",
+    "marquis",
+    "matrix",
+    "megahertz",
+    "microwave",
+    "mnemonic",
+    "mystify",
+    "naphtha",
+    "nightclub",
+    "nowadays",
+    "numbskull",
+    "nymph",
+    "onyx",
+    "ovary",
+    "oxidize",
+    "oxygen",
+    "pajama",
+    "peekaboo",
+    "phlegm",
+    "pixel",
+    "pizazz",
+    "pneumonia",
+    "polka",
+    "pshaw",
+    "psyche",
+    "puppy",
+    "puzzling",
+    "quartz",
+    "queue",
+    "quips",
+    "quixotic",
+    "quiz",
+    "quizzes",
+    "quorum",
+    "razzmatazz",
+    "rhubarb",
+    "rhythm",
+    "rickshaw",
+    "schnapps",
+    "scratch",
+    "shiv",
+    "snazzy",
+    "sphinx",
+    "spritz",
+    "squawk",
+    "staff",
+    "strength",
+    "strengths",
+    "stretch",
+    "stronghold",
+    "stymied",
+    "subway",
+    "swivel",
+    "syndrome",
+    "thriftless",
+    "thumbscrew",
+    "topaz",
+    "transcript",
+    "transgress",
+    "transplant",
+    "triphthong",
+    "twelfth",
+    "twelfths",
+    "unknown",
+    "unworthy",
+    "unzip",
+    "uptown",
+    "vaporize",
+    "vixen",
+    "vodka",
+    "voodoo",
+    "vortex",
+    "voyeurism",
+    "walkway",
+    "waltz",
+    "wave",
+    "wavy",
+    "waxy",
+    "wellspring",
+    "wheezy",
+    "whiskey",
+    "whizzing",
+    "whomever",
+    "wimpy",
+    "witchcraft",
+    "wizard",
+    "woozy",
+    "wristwatch",
+    "wyvern",
+    "xylophone",
+    "yachtsman",
+    "yippee",
+    "yoked",
+    "youthful",
+    "yummy",
+    "zephyr",
+    "zigzag",
+    "zigzagging",
+    "zilch",
+    "zipper",
+    "zodiac",
+    "zombie",
+]
+
+stages = [
+    r"""
+  +---+
+  |   |
+  O   |
+ /|\  |
+ / \  |
+      |
+=========
+""",
+    r"""
+  +---+
+  |   |
+  O   |
+ /|\  |
+ /    |
+      |
+=========
+""",
+    r"""
+  +---+
+  |   |
+  O   |
+ /|\  |
+      |
+      |
+=========
+""",
+    """
+  +---+
+  |   |
+  O   |
+ /|   |
+      |
+      |
+=========""",
+    """
+  +---+
+  |   |
+  O   |
+  |   |
+      |
+      |
+=========
+""",
+    """
+  +---+
+  |   |
+  O   |
+      |
+      |
+      |
+=========
+""",
+    """
+  +---+
+  |   |
+      |
+      |
+      |
+      |
+=========
+""",
+]
+
+logo = r""" 
+ _                                             
+| |                                            
+| |__   __ _ _ __   __ _ _ __ ___   __ _ _ __  
+| '_ \ / _` | '_ \ / _` | '_ ` _ \ / _` | '_ \ 
+| | | | (_| | | | | (_| | | | | | | (_| | | | |
+|_| |_|\__,_|_| |_|\__, |_| |_| |_|\__,_|_| |_|
+                    __/ |                      
+                   |___/    """
+
+# Import Pyodide's built-in fetch method instead of 'requests'
+from pyodide.http import open_url
 
 # 1. Initialize persistent state variables on the first run
 if "step" not in globals():
@@ -21,16 +313,12 @@ if step == 0:
     print(logo)
     print("Welcome!\nA word has been randomly generated. Lets play!!")
 
-    # Fetch random words
+    # Fetch random words using Pyodide's native URL opener
     try:
-        response = requests.get(
-            "https://random-word-api.herokuapp.com/word?number=100&diff=1&length=5",
-            timeout=5,
+        response = open_url(
+            "https://random-word-api.herokuapp.com/word?number=100&diff=1&length=5"
         )
-        if response.status_code == 200:
-            word_list = response.json()
-        else:
-            word_list = backup_word_list
+        word_list = json.loads(response.read())
     except:
         word_list = backup_word_list
 
@@ -103,7 +391,9 @@ elif step == 1:
 # STEP 2: Play Again Logic
 elif step == 2:
     if user_input in ("y", "yes"):
-        print("\nRestarting...\n(Press 'Enter' or click Run to generate a new word)")
+        print(
+            "\nRestarting...\n(Press 'Enter' or click 'Start Hangman' to generate a new word)"
+        )
         step = 0
     elif user_input in ("n", "no"):
         print("Thanks for playing! Goodbye.")
@@ -114,5 +404,5 @@ elif step == 2:
 # STEP 3: Game Finished State
 elif step == 3:
     print(
-        "Game over. Click the 'Reload' button at the top to start a completely new session."
+        "Game over. Click the 'Restart Hangman' button to start a completely new session."
     )

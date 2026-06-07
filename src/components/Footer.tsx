@@ -1,4 +1,4 @@
-import { Box, Typography,IconButton, useTheme } from '@mui/material';
+import { Box, IconButton, Typography, useTheme } from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import EmailIcon from '@mui/icons-material/Email';
@@ -16,7 +16,7 @@ export default function Footer() {
         backgroundColor:
           theme.palette.mode === 'dark'
             ? 'rgba(0,0,0,0.6)'
-            : 'rgba(255,255,255,0.6)',
+            : 'rgba(255,255,255,0.78)',
         backdropFilter: 'blur(10px)',
         borderTop: '1px solid',
         borderColor: 'divider',
@@ -40,12 +40,12 @@ export default function Footer() {
         >
           <LinkedInIcon />
         </IconButton>
-        <IconButton component="a" href="mailto:saumyajn1994@email.com">
+        <IconButton component="a" href="mailto:saumyajn1994@gmail.com">
           <EmailIcon />
         </IconButton>
       </Box>
       <Typography variant="body2">
-        Built with ❤️ by Saumya Jain— Arcade Stack © {new Date().getFullYear()}
+        Built by Saumya Jain - Arcade Stack (c) {new Date().getFullYear()}
       </Typography>
     </Box>
   );

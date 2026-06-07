@@ -17,7 +17,7 @@ const PageLoader = () => (
 )
 const AppRouter = () => {
     return (
-        <Box display="flex" flexDirection="column" minHeight="100vh">
+        <Box display="flex" flexDirection="column" minHeight="100%">
             <Suspense fallback={<PageLoader />}>
                 <Routes>
                     <Route path="/" element={<Home />} />
@@ -25,7 +25,7 @@ const AppRouter = () => {
                     <Route path="/games/battleship" element={<Battleship />} />
                     <Route path="/games/unscramble" element={<WordScramble />} />
                     <Route path="/about" element={<About />} />
-                       <Route path="/games/treasure-island" element={<TreasureIsland />} />
+                    <Route path="/games/treasure-island" element={<TreasureIsland />} />
                     <Route path="/games/hangman" element={<PythonHangman />} />
                 </Routes>
             </Suspense>

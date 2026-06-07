@@ -65,8 +65,17 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
   };
 
   return (
-    <Container component="main" maxWidth="md" sx={{ flexGrow: 1, py: 6 }}>
-      <Paper elevation={4} sx={{ p: { xs: 3, md: 5 }, borderRadius: 3, bgcolor: 'background.paper' }}>
+    <Container component="main" maxWidth="md" sx={{ flexGrow: 1, py: { xs: 4, md: 6 } }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 2.5, md: 4 },
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          border: '1px solid rgba(24,33,64,0.1)',
+          boxShadow: '0 18px 45px rgba(31, 24, 64, 0.08)',
+        }}
+      >
         <Typography variant="h3" component="h1" fontWeight="bold" gutterBottom>
           {title}
         </Typography>
@@ -94,8 +103,8 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
               borderRadius: 2, 
               fontFamily: 'monospace', 
               whiteSpace: 'pre-wrap',
-              bgcolor: error ? 'error.dark' : 'white.default',
-              color: error ? 'error.contrastText' : 'success.main',
+              bgcolor: error ? 'error.dark' : '#0b1020',
+              color: error ? 'error.contrastText' : '#d7f8f3',
               border: 1,
               borderColor: error ? 'error.main' : 'grey.800',
               boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
@@ -105,7 +114,7 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
           >
             {error && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, color: 'error.light' }}>
-                <ErrorOutlineIcon /> <Typography fontWeight="bold">Execution Error</Typography>
+                <ErrorOutlineIcon /> <Typography fontWeight="bold">{error} Execution Error</Typography>
               </Box>
             )}
             {output}
@@ -114,7 +123,7 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
 
         {/* Interactive Text Input Box (Only shows when game is active) */}
         {gameStarted && !error && (
-            <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+            <Box sx={{ display: 'flex', gap: 2, mt: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
                 <TextField 
                     fullWidth
                     variant="outlined"
@@ -131,7 +140,7 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
                     onClick={() => handleRun(false)}
                     disabled={isRunning || !command.trim()}
                     endIcon={<SendIcon />}
-                    sx={{ px: 4, fontWeight: 'bold' }}
+                    sx={{ px: 4, fontWeight: 'bold', minWidth: { sm: 132 } }}
                 >
                     Send
                 </Button>

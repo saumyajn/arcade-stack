@@ -59,14 +59,14 @@ const Header: React.FC = () => {
   };
 
   return (
-    <AppBar 
-      position="sticky" 
-      color="primary" 
+    <AppBar
+      position="sticky"
       elevation={0}
-      sx={{ 
-        // UI Polish: Glassmorphism effect
-        backdropFilter: 'blur(10px)', 
-        background: 'rgba(205, 180, 219, 0.9)' // semi-transparent primary
+      sx={{
+        color: 'text.primary',
+        borderBottom: '1px solid rgba(24, 33, 64, 0.1)',
+        backdropFilter: 'blur(14px)',
+        backgroundColor: 'rgba(255,255,255,0.82)',
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -77,10 +77,9 @@ const Header: React.FC = () => {
           </Link>
           <Typography
             variant="h6"
-            fontWeight={600}
             component={Link}
             to="/"
-            sx={{ color: 'inherit', textDecoration: 'none' }}
+            sx={{ color: 'inherit', textDecoration: 'none', fontWeight: 900 }}
           >
             ArcadeStack
           </Typography>
@@ -130,8 +129,9 @@ const Header: React.FC = () => {
           <>
             <IconButton
               edge="end"
-              color="inherit"
+              color="primary"
               size="large"
+              aria-label="Open navigation menu"
               onClick={toggleDrawer(true)}
             >
               <MenuIcon />

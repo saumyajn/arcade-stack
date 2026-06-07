@@ -1,154 +1,181 @@
 import {
   Box,
-  Typography,
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions,
   Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardMedia,
+  Chip,
+  Stack,
+  Typography,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { motion, Variants } from 'framer-motion';
-const games = [
+
+type GameCard = {
+  name: string;
+  image: string;
+  path: string;
+  description: string;
+  tags: string[];
+  disabled?: boolean;
+};
+
+const games: GameCard[] = [
   {
     name: 'Rock Paper Scissors',
     image: '/assets/images/rps-cover.png',
     path: '/games/rock-paper-scissors',
-    description: 'The classic hand battle. Rock, paper, or scissors?',
-    disabled: false,
+    description: 'A fast reaction game with score tracking, animation, and instant feedback.',
+    tags: ['React', 'State machine', 'Animation'],
   },
   {
     name: 'Battleship',
     image: '/assets/images/battleship.gif',
     path: '/games/battleship',
-    description: 'Sink your opponent’s fleet before they sink yours!',
-    disabled: false,
+    description: 'Drag ships, manage turns, and play against a simple CPU opponent.',
+    tags: ['Grid logic', 'Drag and drop', 'Game AI'],
   },
   {
     name: 'Word Scramble',
     image: '/assets/images/scramble-cover.png',
     path: '/games/unscramble',
-    description: 'Unscramble the letters before time runs out!',
-    disabled: false,
+    description: 'A timed vocabulary puzzle with online word generation and offline fallback.',
+    tags: ['API fallback', 'Scoring', 'UX states'],
   },
   {
     name: 'Treasure Island',
-    image: '/assets/images/treasure-island.png',
+    image: '/assets/images/coming-soon.png',
     path: '/games/treasure-island',
-    description: 'A classic text-based adventure game written in Python. Make choices to find the hidden treasure!',
-    disabled: false,
+    description: 'A browser-run Python adventure powered by a Pyodide web worker.',
+    tags: ['Python', 'Pyodide', 'Worker'],
   },
   {
     name: 'Hangman',
-    image: '/assets/images/hangman.png',
+    image: '/assets/images/coming-soon.png',
     path: '/games/hangman',
-    description: 'The classic word guessing game, powered by Python in your browser.',
-    disabled: false,
+    description: 'A classic Python word game adapted into an interactive React shell.',
+    tags: ['Python', 'Interop', 'Terminal UI'],
   },
   {
-    name: 'Coming Soon',
+    name: 'Next Game Slot',
     image: '/assets/images/coming-soon.png',
     path: '',
-    description: 'More games are on the way. Stay tuned!',
+    description: 'Reserved for the next game module, leaderboard, or multiplayer experiment.',
+    tags: ['Roadmap'],
     disabled: true,
   },
 ];
 
 const MotionCard = motion(Card);
+
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.15
-    }
-  }
+    transition: { staggerChildren: 0.08 },
+  },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
+  hidden: { opacity: 0, y: 18 },
+  visible: { opacity: 1, y: 0 },
 };
-const Home = () => {
+
+export default function Home() {
   return (
-    <Box textAlign="center" sx={{ py: 6, px: 2 }}>
-      <Typography
-        variant="h2"
-        gutterBottom
+    <Box sx={{ py: { xs: 4, md: 6 } }}>
+      <Box
         sx={{
-          fontFamily: `'Baloo 2', cursive`,
-          fontWeight: 600,
-          color: 'primary.main',
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '1fr auto' },
+          gap: { xs: 3, lg: 5 },
+          alignItems: 'end',
+          mb: 4,
         }}
       >
-        🎮 Welcome to ArcadeStack!
-      </Typography>
-      <Typography variant="body1" sx={{ maxWidth: 600, mx: 'auto', mb: 5 }}>
-        A growing collection of quick, fun games you can play anywhere. Challenge yourself and have fun!
-      </Typography>
+        <Box>
+          <Chip label="React + TypeScript + browser Python" color="primary" variant="outlined" sx={{ mb: 2 }} />
+          <Typography variant="h2" sx={{ maxWidth: 820, mb: 2 }}>
+            Arcade Stack
+          </Typography>
+          <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 760, lineHeight: 1.7 }}>
+            A polished mini-game platform that demonstrates React architecture, reusable game shells,
+            local scoring, API fallback handling, and Python execution inside the browser.
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+          <Chip label="5 playable games" color="secondary" />
+          <Chip label="Lazy routes" variant="outlined" />
+          <Chip label="Pyodide worker" variant="outlined" />
+        </Stack>
+      </Box>
 
-      {/* Game Grid */}
-      <Grid
-        container
-        spacing={4}
-        justifyContent="center"
-        component={motion.div} // Animate the container
+      <Box
+        component={motion.div}
         variants={containerVariants}
         initial="hidden"
-        animate="visible">
-        {games.map((game, index) => (
-          <Grid sx={{ xs: 12, sm: 6, md: 4 }} key={index} component={motion.div} variants={itemVariants}>
-            <MotionCard
-              whileHover={{ scale: 1.05, translateY: -5 }}
-              transition={{ duration: 0.3 }}
-              elevation={4}
-              sx={{
-                borderRadius: 4,
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-                backgroundColor: game.disabled ? '#f1f1f1' : 'white',
-                overflow: 'hidden'
-              }}
-            >
-              <CardMedia
-              
-                component="img"
-                image={game.image}
-                alt={game.name}
-                height="180"
-                loading="lazy"
-                sx={{ objectFit: 'contain', p: 2, bgcolor: 'rgba(0,0,0,0.02)' }} />
-              <CardContent>
-                <Typography
-                  variant="h6"
-                  sx={{ fontFamily: `'Baloo 2', cursive` }}
-                  gutterBottom
-                >
-                  {game.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {game.description}
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ mt: 'auto', pb: 2, justifyContent: 'center' }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  disabled={game.disabled}
-                  component={game.disabled ? 'button' : Link}
-                  to={game.path}
-                >
-                  {game.disabled ? 'Coming Soon' : 'Play Now'}
-                </Button>
-              </CardActions>
-            </MotionCard>
-          </Grid>
+        animate="visible"
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+          gap: 3,
+        }}
+      >
+        {games.map((game) => (
+          <MotionCard
+            key={game.name}
+            variants={itemVariants}
+            whileHover={game.disabled ? undefined : { translateY: -6 }}
+            transition={{ duration: 0.2 }}
+            elevation={0}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 420,
+              borderRadius: 2,
+              border: '1px solid rgba(24, 33, 64, 0.1)',
+              overflow: 'hidden',
+              opacity: game.disabled ? 0.72 : 1,
+              backgroundColor: 'background.paper',
+              boxShadow: '0 18px 45px rgba(31, 24, 64, 0.08)',
+            }}
+          >
+            <CardMedia
+              component="img"
+              image={game.image}
+              alt={`${game.name} cover`}
+              height="190"
+              loading="lazy"
+              sx={{ objectFit: 'cover', backgroundColor: 'rgba(24,33,64,0.04)' }}
+            />
+            <CardContent sx={{ flex: 1 }}>
+              <Typography variant="h5" gutterBottom>
+                {game.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65, mb: 2 }}>
+                {game.description}
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                {game.tags.map((tag) => (
+                  <Chip key={tag} label={tag} size="small" variant="outlined" />
+                ))}
+              </Stack>
+            </CardContent>
+            <CardActions sx={{ px: 2, pb: 2 }}>
+              <Button
+                fullWidth
+                variant={game.disabled ? 'outlined' : 'contained'}
+                disabled={game.disabled}
+                component={game.disabled ? 'button' : Link}
+                to={game.disabled ? undefined : game.path}
+              >
+                {game.disabled ? 'Coming Soon' : 'Play'}
+              </Button>
+            </CardActions>
+          </MotionCard>
         ))}
-      </Grid>
+      </Box>
     </Box>
   );
-};
-
-export default Home;
+}

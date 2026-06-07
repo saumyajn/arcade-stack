@@ -20,8 +20,8 @@ const GridCell = React.memo(({
   let content = '';
 
   if (status === 'ship') bg = '#66b8fc'; // Ship placed
-  if (status === 'hit') { bg = '#ef5350'; content = '💥'; }
-  if (status === 'miss') { bg = '#bdbdbd'; content = '🌊'; }
+  if (status === 'hit') { bg = '#ef5350'; content = 'X'; }
+  if (status === 'miss') { bg = '#bdbdbd'; content = '-'; }
 
   return (
     <Box
@@ -103,7 +103,7 @@ const Battleship = () => {
           sx={{ mb: 3, justifyContent: 'center' }}
         >
           <Typography variant="h6">
-            {winner === 'player' ? '🎉 Victory! You sank the enemy fleet!' : '💀 Defeat! Your fleet is destroyed.'}
+            {winner === 'player' ? 'Victory! You sank the enemy fleet!' : 'Defeat! Your fleet is destroyed.'}
           </Typography>
         </Alert>
       )}

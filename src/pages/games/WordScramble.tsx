@@ -14,7 +14,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 // import { useHighScore } from '../../hooks/useHighScore';
 
 export default function WordScramble() {
@@ -36,15 +36,16 @@ export default function WordScramble() {
     return shuffled;
   }
 
-  const getWordLength = () => {
+  const getWordLength = useCallback(() => {
     switch (difficulty) {
       case "1": return 5;
       case "2": return 7;
-      case "3": return 9; break;
+      case "3": return 9;
       default: return Math.floor(Math.random() * 4) + 5;
     }
-  };
-  const getRandomWord = async () => {
+  }, [difficulty]);
+
+  const getRandomWord = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     setGuess("");
@@ -77,11 +78,11 @@ export default function WordScramble() {
     finally {
       setLoading(false)
     }
-  };
+  }, [getWordLength]);
   // Start game on mount
   useEffect(() => {
     if (!originalWord) getRandomWord();
-  }, []);
+  }, [getRandomWord, originalWord]);
 
   const checkWord = () => {
     const cleanedGuess = guess.trim().toLowerCase();
@@ -89,12 +90,12 @@ export default function WordScramble() {
 
     if (cleanedGuess === cleanedOriginal) {
       const points = cleanedOriginal.length * 10;
-      setMessage({ type: 'success', text: `🎉 Correct! +${points} points` });
+      setMessage({ type: 'success', text: `Correct! +${points} points` });
       setScore(s => s + points);
       setStreak(s => s + 1);
       setTimeout(getRandomWord, 1500); // Auto next
     } else {
-      setMessage({ type: 'error', text: "❌ Incorrect, try again!" });
+      setMessage({ type: 'error', text: "Incorrect, try again!" });
       setStreak(0);
       setScore(s => Math.max(0, s - 5)); // Penalty
     }
@@ -107,7 +108,7 @@ export default function WordScramble() {
 
 
   return (
-    <Box sx={{   mt: 6, px: 3, textAlign: 'center' }}>
+    <Box sx={{ mt: 4, px: { xs: 0, sm: 3 }, textAlign: 'center' }}>
       <Typography variant="h3" sx={{ fontFamily: 'Baloo 2' }} gutterBottom>
         Word Scramble!
       </Typography>
@@ -115,7 +116,7 @@ export default function WordScramble() {
       <Paper elevation={3} sx={{ p: 3, borderRadius: 4, mb: 4 }}>
         <Box display="flex">
           <Chip label={`Score: ${score}`} color="primary" variant="outlined" />
-          <Chip label={`Streak: 🔥 ${streak}`} color={streak > 2 ? "warning" : "default"} />
+          <Chip label={`Streak: ${streak}`} color={streak > 2 ? "warning" : "default"} />
         </Box>
 
         <Box mb={3}>
@@ -140,7 +141,7 @@ export default function WordScramble() {
             <CircularProgress />
           ) : (
             <>
-              <Typography variant="h2" sx={{ letterSpacing: 8, fontFamily: 'monospace', fontWeight: 'bold' }}>
+              <Typography variant="h2" sx={{ letterSpacing: { xs: 2, sm: 8 }, fontFamily: 'monospace', fontWeight: 'bold', wordBreak: 'break-word' }}>
                 {shuffledWord.toUpperCase()}
               </Typography>
               <Typography variant="caption" color="textSecondary">
