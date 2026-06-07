@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Grid, Button, Paper, Alert, Stack } from '@mui/material';
 import useBattleshipGame, { ships,  } from '../../helpers/battleshipHelper';
+import GamePageShell from '../../components/GamePageShell';
 // import { useHighScore } from '../../hooks/useHighScore'; // Uncomment if hook is created
 
 const GRID_SIZE = 10;
@@ -91,11 +92,12 @@ const Battleship = () => {
   };
 
   return (
-    <Box textAlign="center" sx={{ py: 4, maxWidth: 900, mx: 'auto' }}>
-      <Typography variant="h3" gutterBottom sx={{ fontFamily: 'Baloo 2' }}>
-        Battleship
-      </Typography>
-
+    <GamePageShell
+      title="Battleship"
+      description="Place ships, start the battle, and attack enemy waters through a compact turn-based grid."
+      tags={['Grid logic', 'Drag and drop', 'CPU turns']}
+    >
+    <Box textAlign="center">
       {/* Game Over Banner */}
       {gameState === 'gameOver' && (
         <Alert 
@@ -109,7 +111,7 @@ const Battleship = () => {
       )}
 
       {/* Control Panel */}
-      <Stack direction="row" spacing={2} justifyContent="center" mb={4}>
+      <Stack direction="row" spacing={2} justifyContent="center" mb={4} sx={{ flexWrap: 'wrap', gap: 1 }}>
         {gameState === 'placing' ? (
           <>
             <Button variant="contained" onClick={startGame} disabled={placedShips.length !== 5}>
@@ -129,7 +131,7 @@ const Battleship = () => {
 
       {/* Ship Dock (Only during placement) */}
       {gameState === 'placing' && (
-        <Paper sx={{ p: 2, mb: 4, bgcolor: '#f5f5f5', display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Paper elevation={0} sx={{ p: 2, mb: 4, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Typography width="100%" variant="subtitle2" color="textSecondary">Drag ships to your board</Typography>
           {ships.map((ship) => {
             const isPlaced = placedShips.some(s => s.id === ship.id);
@@ -160,7 +162,8 @@ const Battleship = () => {
       )}
 
       {/* Boards Grid */}
-      <Grid container spacing={4} justifyContent="center">
+      <Box sx={{ overflowX: 'auto', pb: 1 }}>
+      <Grid container spacing={4} justifyContent="center" sx={{ minWidth: { xs: 680, md: 'auto' } }}>
         {/* Player Board */}
         <Grid>
           <Typography variant="h6" gutterBottom color="primary">Your Fleet</Typography>
@@ -214,7 +217,9 @@ const Battleship = () => {
           </Box>
         </Grid>
       </Grid>
+      </Box>
     </Box>
+    </GamePageShell>
   );
 };
 

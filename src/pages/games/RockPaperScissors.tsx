@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import { useEffect, useState } from 'react';
+import GamePageShell from '../../components/GamePageShell';
 
 const choices = ['rock', 'paper', 'scissor'];
 
@@ -56,14 +57,15 @@ export default function RockPaperScissors() {
   };
 
   return (
-    <Box textAlign="center" sx={{ py: { xs: 4, md: 6 } }}>
+    <GamePageShell
+      title="Rock Paper Scissors"
+      description="Pick a move, race the CPU, and use the score state to track a lightweight best-of session."
+      tags={['State logic', 'Score tracking', 'Motion feedback']}
+    >
+    <Box textAlign="center">
       {showConfetti && (
         <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />
       )}
-
-      <Typography variant="h3" mb={2}>
-        Rock Paper Scissors
-      </Typography>
 
       <Typography variant="body1" color="text.secondary" mb={3}>
         Make your move and test your luck.
@@ -123,5 +125,6 @@ export default function RockPaperScissors() {
         </Button>
       </Box>
     </Box>
+    </GamePageShell>
   );
 }

@@ -1,62 +1,61 @@
 import React, { useState } from 'react';
 import {
   AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
   Box,
   Button,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
   Collapse,
   Divider,
-  useMediaQuery,
-  useTheme,
+  Drawer,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemText,
   Menu,
   MenuItem,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import { Link, useNavigate } from 'react-router-dom';
+import MenuIcon from '@mui/icons-material/Menu';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { liveGames } from '../data/games';
 
 const Header: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
-
-  // State
+  const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  
-  // Desktop Menu State
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [mobileGamesOpen, setMobileGamesOpen] = useState(false);
   const gamesMenuOpen = Boolean(anchorEl);
 
-  // Mobile Menu State (Separated for better UX)
-  const [mobileGamesOpen, setMobileGamesOpen] = useState(false);
+  const isActive = (path: string) => location.pathname === path;
+  const isGameActive = liveGames.some((game) => location.pathname === game.path);
 
-  // Handlers
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
-    if (!open) setMobileGamesOpen(false); // Reset mobile menu on close
-  };
-
-  const handleGamesClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleGamesClose = () => {
-    setAnchorEl(null);
+    if (!open) setMobileGamesOpen(false);
   };
 
   const navigateTo = (path: string) => {
     navigate(path);
     setDrawerOpen(false);
     setMobileGamesOpen(false);
-    handleGamesClose();
+    setAnchorEl(null);
   };
+
+  const navButtonSx = (active: boolean) => ({
+    color: active ? 'primary.main' : 'text.primary',
+    bgcolor: active ? 'rgba(255,61,129,0.14)' : 'transparent',
+    border: active ? '1px solid rgba(255,61,129,0.3)' : '1px solid transparent',
+    '&:hover': {
+      bgcolor: active ? 'rgba(255,61,129,0.18)' : 'rgba(255,255,255,0.08)',
+    },
+  });
 
   return (
     <AppBar
@@ -64,36 +63,41 @@ const Header: React.FC = () => {
       elevation={0}
       sx={{
         color: 'text.primary',
-        borderBottom: '1px solid rgba(24, 33, 64, 0.1)',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
         backdropFilter: 'blur(14px)',
-        backgroundColor: 'rgba(255,255,255,0.82)',
+        backgroundColor: 'rgba(13,11,24,0.82)',
+        boxShadow: '0 18px 45px rgba(0,0,0,0.24)',
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
-        {/* Left: Logo + Title */}
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Link to="/" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <img src="/game.ico" height="30" style={{ margin: '10px' }} alt="Home" />
-          </Link>
-          <Typography
-            variant="h6"
-            component={Link}
-            to="/"
-            sx={{ color: 'inherit', textDecoration: 'none', fontWeight: 900 }}
-          >
+      <Toolbar sx={{ justifyContent: 'space-between', minHeight: { xs: 64, md: 72 } }}>
+        <Box
+          component={Link}
+          to="/"
+          sx={{
+            color: 'inherit',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.25,
+            minHeight: 44,
+          }}
+        >
+          <img src="/game.ico" height="32" width="32" alt="" aria-hidden="true" />
+          <Typography variant="h6" sx={{ fontWeight: 900, color: 'text.primary' }}>
             ArcadeStack
           </Typography>
         </Box>
 
-        {/* Right: Desktop Nav */}
         {!isMobile ? (
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button color="inherit" onClick={() => navigateTo('/')}>Home</Button>
-            
-            {/* Optimized Desktop Games Menu */}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button sx={navButtonSx(isActive('/'))} onClick={() => navigateTo('/')}>
+              Home
+            </Button>
             <Button
-              color="inherit"
-              onClick={handleGamesClick}
+              id="games-button"
+              sx={navButtonSx(isGameActive)}
+              onClick={(event) => setAnchorEl(event.currentTarget)}
               endIcon={gamesMenuOpen ? <ExpandLess /> : <ExpandMore />}
               aria-controls={gamesMenuOpen ? 'games-menu' : undefined}
               aria-haspopup="true"
@@ -105,79 +109,58 @@ const Header: React.FC = () => {
               id="games-menu"
               anchorEl={anchorEl}
               open={gamesMenuOpen}
-              onClose={handleGamesClose}
-              MenuListProps={{
-                'aria-labelledby': 'basic-button',
-              }}
-              PaperProps={{
-                elevation: 3,
-                sx: { mt: 1.5, borderRadius: 2, minWidth: 180 }
-              }}
+              onClose={() => setAnchorEl(null)}
+              MenuListProps={{ 'aria-labelledby': 'games-button' }}
+              PaperProps={{ elevation: 0, sx: { mt: 1.5, borderRadius: 2, minWidth: 220, border: '1px solid', borderColor: 'divider' } }}
             >
-              <MenuItem onClick={() => navigateTo('/games/rock-paper-scissors')}>Rock Paper Scissors</MenuItem>
-              <MenuItem onClick={() => navigateTo('/games/battleship')}>Battleship</MenuItem>
-              <MenuItem onClick={() => navigateTo('/games/unscramble')}>Word Scramble</MenuItem>
-
-                <MenuItem onClick={() => navigateTo('/games/treasure-island')}>Treasure Island</MenuItem>
-              <MenuItem onClick={() => navigateTo('/games/hangman')}>Hangman</MenuItem>
+              {liveGames.map((game) => (
+                <MenuItem key={game.id} selected={isActive(game.path)} onClick={() => navigateTo(game.path)}>
+                  {game.name}
+                </MenuItem>
+              ))}
             </Menu>
-
-            <Button color="inherit" onClick={() => navigateTo('/about')}>About</Button>
+            <Button sx={navButtonSx(isActive('/about'))} onClick={() => navigateTo('/about')}>
+              About
+            </Button>
           </Box>
         ) : (
-          /* Right: Mobile Nav */
           <>
-            <IconButton
-              edge="end"
-              color="primary"
-              size="large"
-              aria-label="Open navigation menu"
-              onClick={toggleDrawer(true)}
-            >
+            <IconButton color="primary" size="large" aria-label="Open navigation menu" onClick={toggleDrawer(true)}>
               <MenuIcon />
             </IconButton>
 
-            <Drawer
-              anchor="left"
-              open={drawerOpen}
-              onClose={toggleDrawer(false)}
-            >
-              <Box sx={{ width: 250 }} role="presentation">
+            <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
+              <Box sx={{ width: 300, py: 1 }} role="presentation">
                 <List>
-                  <ListItem onClick={() => navigateTo('/')} sx={{ cursor: 'pointer' }}>
+                  <ListItemButton selected={isActive('/')} onClick={() => navigateTo('/')}>
                     <ListItemText primary="Home" />
-                  </ListItem>
+                  </ListItemButton>
 
-                  <ListItem onClick={() => setMobileGamesOpen(!mobileGamesOpen)} sx={{ cursor: 'pointer' }}>
+                  <ListItemButton selected={isGameActive} onClick={() => setMobileGamesOpen((open) => !open)}>
                     <ListItemText primary="Games" />
                     {mobileGamesOpen ? <ExpandLess /> : <ExpandMore />}
-                  </ListItem>
+                  </ListItemButton>
 
                   <Collapse in={mobileGamesOpen} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
-                      <ListItem sx={{ pl: 4, cursor: 'pointer' }} onClick={() => navigateTo('/games/rock-paper-scissors')}>
-                        <ListItemText primary="Rock Paper Scissors" />
-                      </ListItem>
-                      <ListItem sx={{ pl: 4, cursor: 'pointer' }} onClick={() => navigateTo('/games/battleship')}>
-                        <ListItemText primary="Battleship" />
-                      </ListItem>
-                      <ListItem sx={{ pl: 4, cursor: 'pointer' }} onClick={() => navigateTo('/games/unscramble')}>
-                        <ListItemText primary="Word Scramble" />
-                      </ListItem>
-                       <ListItem sx={{ pl: 4, cursor: 'pointer' }} onClick={() => navigateTo('/games/treasure-island')}>
-                        <ListItemText primary="Treasure Island" />
-                      </ListItem>
-                      <ListItem sx={{ pl: 4, cursor: 'pointer' }} onClick={() => navigateTo('/games/hangman')}>
-                        <ListItemText primary="Hangman" />
-                      </ListItem>
+                      {liveGames.map((game) => (
+                        <ListItemButton
+                          key={game.id}
+                          selected={isActive(game.path)}
+                          sx={{ pl: 4 }}
+                          onClick={() => navigateTo(game.path)}
+                        >
+                          <ListItemText primary={game.name} secondary={game.engine} />
+                        </ListItemButton>
+                      ))}
                     </List>
                   </Collapse>
 
                   <Divider />
 
-                  <ListItem onClick={() => navigateTo('/about')} sx={{ cursor: 'pointer' }}>
+                  <ListItemButton selected={isActive('/about')} onClick={() => navigateTo('/about')}>
                     <ListItemText primary="About" />
-                  </ListItem>
+                  </ListItemButton>
                 </List>
               </Box>
             </Drawer>

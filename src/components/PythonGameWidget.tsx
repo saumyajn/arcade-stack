@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Typography, CircularProgress, Paper, Container, TextField } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, TextField } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import SendIcon from '@mui/icons-material/Send';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import usePython from '../hooks/usePython';
+import GamePageShell from './GamePageShell';
 
 interface PythonGameWidgetProps {
   title: string;
@@ -65,24 +66,11 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
   };
 
   return (
-    <Container component="main" maxWidth="md" sx={{ flexGrow: 1, py: { xs: 4, md: 6 } }}>
-      <Paper
-        elevation={0}
-        sx={{
-          p: { xs: 2.5, md: 4 },
-          borderRadius: 2,
-          bgcolor: 'background.paper',
-          border: '1px solid rgba(24,33,64,0.1)',
-          boxShadow: '0 18px 45px rgba(31, 24, 64, 0.08)',
-        }}
-      >
-        <Typography variant="h3" component="h1" fontWeight="bold" gutterBottom>
-          {title}
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
-          {description}
-        </Typography>
-        
+    <GamePageShell
+      title={title}
+      description={description}
+      tags={['Python', 'Pyodide', 'Web worker']}
+    >
         <Button 
           variant={gameStarted ? "outlined" : "contained"} 
           size="large"
@@ -147,7 +135,6 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
             </Box>
         )}
 
-      </Paper>
-    </Container>
+    </GamePageShell>
   );
 }

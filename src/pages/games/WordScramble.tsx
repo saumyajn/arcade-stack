@@ -15,6 +15,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import { useCallback, useEffect, useState } from "react";
+import GamePageShell from "../../components/GamePageShell";
 // import { useHighScore } from '../../hooks/useHighScore';
 
 export default function WordScramble() {
@@ -108,11 +109,12 @@ export default function WordScramble() {
 
 
   return (
-    <Box sx={{ mt: 4, px: { xs: 0, sm: 3 }, textAlign: 'center' }}>
-      <Typography variant="h3" sx={{ fontFamily: 'Baloo 2' }} gutterBottom>
-        Word Scramble!
-      </Typography>
-
+    <GamePageShell
+      title="Word Scramble"
+      description="Unscramble generated words, handle network fallback behavior, and track score and streak state."
+      tags={['API fallback', 'Scoring', 'Input UX']}
+    >
+    <Box sx={{ textAlign: 'center' }}>
       <Paper elevation={3} sx={{ p: 3, borderRadius: 4, mb: 4 }}>
         <Box display="flex">
           <Chip label={`Score: ${score}`} color="primary" variant="outlined" />
@@ -196,5 +198,6 @@ export default function WordScramble() {
       </Button>
 
     </Box>
+    </GamePageShell>
   );
 }

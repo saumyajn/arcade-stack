@@ -1,11 +1,9 @@
-import { Box, IconButton, Typography, useTheme } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import EmailIcon from '@mui/icons-material/Email';
 
 export default function Footer() {
-  const theme = useTheme();
-
   return (
     <Box
       component="footer"
@@ -13,14 +11,12 @@ export default function Footer() {
         mt: 'auto',
         py: 3,
         px: { xs: 2, md: 4 },
-        backgroundColor:
-          theme.palette.mode === 'dark'
-            ? 'rgba(0,0,0,0.6)'
-            : 'rgba(255,255,255,0.78)',
-        backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(13,11,24,0.82)',
+        backdropFilter: 'blur(14px)',
         borderTop: '1px solid',
         borderColor: 'divider',
         textAlign: 'center',
+        boxShadow: '0 -18px 45px rgba(0,0,0,0.22)',
       }}
     >
       <Box sx={{ mb: 1 }}>

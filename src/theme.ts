@@ -2,28 +2,29 @@ import { createTheme } from '@mui/material/styles';
 
 export const theme = createTheme({
   palette: {
-    mode: 'light',
+    mode: 'dark',
     primary: {
-      main: '#5b3fd6',
-      dark: '#39259c',
-      light: '#ebe7ff',
+      main: '#8b5cf6',
+      dark: '#5b21b6',
+      light: '#ddd6fe',
     },
     secondary: {
-      main: '#0f9f8f',
-      dark: '#0b6f65',
-      light: '#d7f8f3',
+      main: '#2dd4bf',
+      dark: '#0f766e',
+      light: '#ccfbf1',
     },
     warning: {
-      main: '#f59e0b',
+      main: '#fbbf24',
     },
     background: {
-      default: '#f6f3ff',
-      paper: '#ffffff',
+      default: '#0f172a',
+      paper: '#151c2f',
     },
     text: {
-      primary: '#17122f',
-      secondary: '#625f77',
+      primary: '#f8fafc',
+      secondary: '#cbd5e1',
     },
+    divider: 'rgba(255,255,255,0.12)',
   },
   typography: {
     fontFamily: `'Poppins', sans-serif`,
@@ -43,6 +44,8 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           minHeight: 42,
+          borderRadius: 999,
+          boxShadow: 'none',
         },
       },
     },
@@ -50,6 +53,20 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 700,
         },
       },
     },
