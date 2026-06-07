@@ -127,7 +127,7 @@ export default function Home() {
           </NeonPanel>
 
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
-            <StatTile label="routes" value="7" tone="primary" />
+            <StatTile label="routes" value={String(liveGames.length)} tone="primary" />
             <StatTile label="engines" value="2" tone="secondary" />
             <StatTile label="fallbacks" value="1" tone="warning" />
           </Box>

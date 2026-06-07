@@ -11,6 +11,8 @@ This project is a recruiter-facing frontend case study because it shows more tha
 - Python scripts running in the browser through a web worker.
 - Graceful fallback behavior for network-dependent gameplay.
 - A scalable path toward leaderboards, user stats, and reusable game engines.
+- Optional Google sign-in with Supabase-backed XP, levels, game history, and live-player presence.
+- Custom local SVG cover art for every existing game, avoiding external asset licensing risk.
 
 ## Current Games
 
@@ -22,6 +24,7 @@ This project is a recruiter-facing frontend case study because it shows more tha
 - Tic Tac Toe
 - Memory Match
 - Number Guess
+- Word Match
 
 ## Tech Stack
 
@@ -31,6 +34,7 @@ This project is a recruiter-facing frontend case study because it shows more tha
 - Material UI
 - Framer Motion
 - Pyodide web worker
+- Supabase Auth, Postgres, Row Level Security, and Realtime Presence
 
 ## Local Development
 
@@ -38,6 +42,26 @@ This project is a recruiter-facing frontend case study because it shows more tha
 npm install
 npm run dev
 ```
+
+The app works without Supabase. In that mode it stores guest XP and levels in `localStorage`.
+
+## Optional Supabase Setup
+
+Create a `.env.local` file when you want Google login, cloud stats, and live-player counts:
+
+```bash
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+Enable Google as a sign-in provider in Supabase Auth. Then run [docs/supabase-schema.sql](C:/Users/saumy/Code/react/arcade-stack/docs/supabase-schema.sql) in the Supabase SQL editor.
+
+Postgres stores:
+
+- `players`: profile, XP, level, games played, wins, losses, draws.
+- `game_sessions`: game id, outcome, XP, score, metadata, played timestamp.
+
+Supabase Realtime Presence tracks live players in the browser session without a separate presence table.
 
 ## Verification
 
@@ -92,7 +116,7 @@ VITE_API_BASE_URL=https://your-python-api.example.com
 
 - Add Playwright smoke tests for every game route.
 - Add keyboard alternatives for Battleship ship placement.
-- Add persistent local high scores, then optional authenticated leaderboards.
-- Add generated or custom cover assets for Python games.
+- Add leaderboard views from the stored `game_sessions` data.
+- Add SQL analytics views for most-played games, daily active players, and top XP earners.
 - Add error boundaries around Pyodide initialization and remote word API calls.
 - Extract reusable helpers for turn-based and card-matching games.

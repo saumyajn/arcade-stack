@@ -1,6 +1,7 @@
 import { Box, Button, Chip, Typography } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import GamePageShell from '../../components/GamePageShell';
+import { usePlayer } from '../../hooks/usePlayer';
 
 const symbols = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -10,15 +11,30 @@ const createDeck = () =>
     .sort(() => Math.random() - 0.5);
 
 export default function MemoryMatch() {
+  const { recordGameResult } = usePlayer();
   const [deck, setDeck] = useState(createDeck);
   const [flipped, setFlipped] = useState<number[]>([]);
   const [attempts, setAttempts] = useState(0);
+  const [resultRecorded, setResultRecorded] = useState(false);
   const complete = useMemo(() => deck.every((card) => card.matched), [deck]);
+
+  useEffect(() => {
+    if (!complete || resultRecorded) return;
+
+    recordGameResult({
+      gameId: 'memory-match',
+      outcome: 'complete',
+      xp: Math.max(40, 140 - attempts * 5),
+      metadata: { attempts },
+    });
+    setResultRecorded(true);
+  }, [attempts, complete, recordGameResult, resultRecorded]);
 
   const reset = () => {
     setDeck(createDeck());
     setFlipped([]);
     setAttempts(0);
+    setResultRecorded(false);
   };
 
   const flip = (index: number) => {

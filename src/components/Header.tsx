@@ -22,6 +22,7 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { liveGames } from '../data/games';
+import PlayerStatus from './PlayerStatus';
 
 const Header: React.FC = () => {
   const theme = useTheme();
@@ -90,7 +91,7 @@ const Header: React.FC = () => {
         </Box>
 
         {!isMobile ? (
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Button sx={navButtonSx(isActive('/'))} onClick={() => navigateTo('/')}>
               Home
             </Button>
@@ -122,6 +123,7 @@ const Header: React.FC = () => {
             <Button sx={navButtonSx(isActive('/about'))} onClick={() => navigateTo('/about')}>
               About
             </Button>
+            <PlayerStatus />
           </Box>
         ) : (
           <>
@@ -162,6 +164,9 @@ const Header: React.FC = () => {
                     <ListItemText primary="About" />
                   </ListItemButton>
                 </List>
+                <Box sx={{ px: 2, pb: 2 }}>
+                  <PlayerStatus compact />
+                </Box>
               </Box>
             </Drawer>
           </>

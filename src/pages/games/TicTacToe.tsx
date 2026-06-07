@@ -1,6 +1,7 @@
 import { Box, Button, Typography } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import GamePageShell from '../../components/GamePageShell';
+import { usePlayer } from '../../hooks/usePlayer';
 
 type Mark = 'X' | 'O' | null;
 
@@ -22,32 +23,67 @@ function getWinner(board: Mark[]) {
   return null;
 }
 
+const getBotMove = (board: Mark[]) => {
+  const available = board.map((value, index) => (value ? null : index)).filter((value): value is number => value !== null);
+
+  const findMove = (mark: 'X' | 'O') => {
+    for (const index of available) {
+      const next = board.map((value, i) => (i === index ? mark : value));
+      if (getWinner(next) === mark) return index;
+    }
+    return null;
+  };
+
+  return findMove('O') ?? findMove('X') ?? (board[4] ? null : 4) ?? available[0] ?? null;
+};
+
 export default function TicTacToe() {
+  const { recordGameResult } = usePlayer();
   const [board, setBoard] = useState<Mark[]>(Array(9).fill(null));
-  const [turn, setTurn] = useState<'X' | 'O'>('X');
+  const [resultRecorded, setResultRecorded] = useState(false);
   const winner = useMemo(() => getWinner(board), [board]);
   const isDraw = !winner && board.every(Boolean);
 
+  useEffect(() => {
+    if (resultRecorded || (!winner && !isDraw)) return;
+
+    if (winner === 'X') {
+      recordGameResult({ gameId: 'tic-tac-toe', outcome: 'win', xp: 60 });
+    } else if (winner === 'O') {
+      recordGameResult({ gameId: 'tic-tac-toe', outcome: 'loss', xp: 15 });
+    } else {
+      recordGameResult({ gameId: 'tic-tac-toe', outcome: 'draw', xp: 30 });
+    }
+    setResultRecorded(true);
+  }, [isDraw, recordGameResult, resultRecorded, winner]);
+
   const play = (index: number) => {
     if (board[index] || winner) return;
-    setBoard((current) => current.map((value, i) => (i === index ? turn : value)));
-    setTurn((current) => (current === 'X' ? 'O' : 'X'));
+
+    const withPlayerMove = board.map((value, i) => (i === index ? 'X' : value));
+    if (getWinner(withPlayerMove) || withPlayerMove.every(Boolean)) {
+      setBoard(withPlayerMove);
+      return;
+    }
+
+    const botMove = getBotMove(withPlayerMove);
+    setBoard(withPlayerMove.map((value, i) => (i === botMove ? 'O' : value)));
   };
 
   const reset = () => {
     setBoard(Array(9).fill(null));
-    setTurn('X');
+    setResultRecorded(false);
   };
 
   return (
     <GamePageShell
       title="Tic Tac Toe"
-      description="A compact board game showing turn state, derived winner calculation, and reset flow."
-      tags={['Board logic', 'Derived state', 'Win detection']}
+      description="Play X against a bot that blocks wins, takes center, and finishes obvious lines."
+      tags={['Bot opponent', 'Derived state', 'Win detection']}
     >
       <Box sx={{ textAlign: 'center' }}>
         <Typography variant="h5" sx={{ mb: 2 }}>
-          {winner ? `${winner} wins` : isDraw ? 'Draw game' : `${turn}'s turn`}
+          {winner ? `${winner === 'X' ? 'You' : 'Bot'} win${winner === 'X' ? '' : 's'}` : isDraw ? 'Draw game' : 'Your move'}
         </Typography>
         <Box
           sx={{

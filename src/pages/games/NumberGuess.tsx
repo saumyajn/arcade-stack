@@ -1,10 +1,12 @@
 import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import GamePageShell from '../../components/GamePageShell';
+import { usePlayer } from '../../hooks/usePlayer';
 
 const createTarget = () => Math.floor(Math.random() * 100) + 1;
 
 export default function NumberGuess() {
+  const { recordGameResult } = usePlayer();
   const [target, setTarget] = useState(createTarget);
   const [guess, setGuess] = useState('');
   const [attempts, setAttempts] = useState<number[]>([]);
@@ -20,6 +22,15 @@ export default function NumberGuess() {
   const submit = () => {
     const value = Number(guess);
     if (!Number.isInteger(value) || value < 1 || value > 100 || solved) return;
+    if (value === target) {
+      const nextAttemptCount = attempts.length + 1;
+      recordGameResult({
+        gameId: 'number-guess',
+        outcome: 'win',
+        xp: Math.max(30, 110 - nextAttemptCount * 10),
+        metadata: { attempts: nextAttemptCount },
+      });
+    }
     setAttempts((current) => [...current, value]);
     setGuess('');
   };
@@ -35,8 +46,8 @@ export default function NumberGuess() {
   return (
     <GamePageShell
       title="Number Guess"
-      description="Use bounded input, derived feedback, and attempt history to locate the hidden number."
-      tags={['Input validation', 'Feedback loop', 'Random state']}
+      description="Beat the bot by using bounded input, derived feedback, and attempt history to locate its hidden number."
+      tags={['Bot target', 'Feedback loop', 'XP session']}
     >
       <Box sx={{ maxWidth: 560, mx: 'auto', textAlign: 'center' }}>
         <Typography variant="h5" sx={{ mb: 2 }}>

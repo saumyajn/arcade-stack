@@ -4,6 +4,7 @@ import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import { useEffect, useState } from 'react';
 import GamePageShell from '../../components/GamePageShell';
+import { usePlayer } from '../../hooks/usePlayer';
 
 const choices = ['rock', 'paper', 'scissor'];
 
@@ -12,6 +13,7 @@ const getRandomChoice = () => choices[Math.floor(Math.random() * choices.length)
 const MotionButton = motion(Button);
 
 export default function RockPaperScissors() {
+  const { recordGameResult } = usePlayer();
   const [userChoice, setUserChoice] = useState('');
   const [compChoice, setCompChoice] = useState('');
   const [winner, setWinner] = useState('');
@@ -34,6 +36,7 @@ export default function RockPaperScissors() {
 
     if (choice === computer) {
       setWinner("It's a tie!");
+      recordGameResult({ gameId: 'rock-paper-scissors', outcome: 'draw', xp: 6 });
     } else if (
       (choice === 'rock' && computer === 'scissor') ||
       (choice === 'scissor' && computer === 'paper') ||
@@ -41,9 +44,11 @@ export default function RockPaperScissors() {
     ) {
       setWinner('You win!');
       setUserScore((prev) => prev + 1);
+      recordGameResult({ gameId: 'rock-paper-scissors', outcome: 'win', xp: 12 });
     } else {
       setWinner('Computer wins!');
       setCompScore((prev) => prev + 1);
+      recordGameResult({ gameId: 'rock-paper-scissors', outcome: 'loss', xp: 4 });
     }
   };
 

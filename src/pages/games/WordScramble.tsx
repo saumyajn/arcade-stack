@@ -16,9 +16,11 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import { useCallback, useEffect, useState } from "react";
 import GamePageShell from "../../components/GamePageShell";
+import { usePlayer } from "../../hooks/usePlayer";
 // import { useHighScore } from '../../hooks/useHighScore';
 
 export default function WordScramble() {
+  const { recordGameResult } = usePlayer();
   const [difficulty, setDifficulty] = useState("0");
   const [originalWord, setOriginalWord] = useState("");
   const [shuffledWord, setShuffledWord] = useState("");
@@ -94,6 +96,13 @@ export default function WordScramble() {
       setMessage({ type: 'success', text: `Correct! +${points} points` });
       setScore(s => s + points);
       setStreak(s => s + 1);
+      recordGameResult({
+        gameId: 'word-scramble',
+        outcome: 'win',
+        xp: points,
+        score: score + points,
+        metadata: { difficulty, wordLength: cleanedOriginal.length },
+      });
       setTimeout(getRandomWord, 1500); // Auto next
     } else {
       setMessage({ type: 'error', text: "Incorrect, try again!" });
