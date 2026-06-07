@@ -8,11 +8,13 @@ import {
 import type { User } from '@supabase/supabase-js';
 import { isSupabaseConfigured, supabase } from '../services/supabase';
 import { PlayerContext } from './playerContextBase';
-import type { GameResultInput, PlayerContextValue, PlayerStats } from './playerTypes';
+import type { GameResultInput, GameOutcome, GameSessionRecord, PlayerContextValue, PlayerStats, XpAward } from './playerTypes';
 
 const GUEST_STATS_KEY = 'arcade-stack:guest-stats';
+const GUEST_SESSIONS_KEY = 'arcade-stack:guest-sessions';
 const PRESENCE_SESSION_KEY = 'arcade-stack:presence-id';
 const LEVEL_XP = 250;
+const SESSION_LIMIT = 30;
 
 const initialStats: PlayerStats = {
   xp: 0,
@@ -55,6 +57,47 @@ const saveGuestStats = (stats: PlayerStats) => {
   localStorage.setItem(GUEST_STATS_KEY, JSON.stringify(stats));
 };
 
+const normalizeSession = (value: unknown): GameSessionRecord | null => {
+  if (typeof value !== 'object' || value === null) return null;
+  const source = value as {
+    id?: string;
+    gameId?: string;
+    game_id?: string;
+    outcome?: GameOutcome;
+    xp?: number;
+    score?: number | null;
+    metadata?: Record<string, string | number | boolean | null>;
+    playedAt?: string;
+    played_at?: string;
+  };
+  const gameId = source.gameId ?? source.game_id;
+  const playedAt = source.playedAt ?? source.played_at;
+  if (!gameId || !source.outcome || !playedAt) return null;
+
+  return {
+    id: source.id ?? crypto.randomUUID(),
+    gameId,
+    outcome: source.outcome,
+    xp: Number(source.xp) || 0,
+    score: source.score ?? null,
+    metadata: source.metadata ?? {},
+    playedAt,
+  };
+};
+
+const loadGuestSessions = () => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(GUEST_SESSIONS_KEY) ?? '[]') as unknown[];
+    return parsed.map(normalizeSession).filter((session): session is GameSessionRecord => Boolean(session));
+  } catch {
+    return [];
+  }
+};
+
+const saveGuestSessions = (sessions: GameSessionRecord[]) => {
+  localStorage.setItem(GUEST_SESSIONS_KEY, JSON.stringify(sessions.slice(0, SESSION_LIMIT)));
+};
+
 const buildNextStats = (current: PlayerStats, result: GameResultInput): PlayerStats => {
   const xp = current.xp + Math.max(0, Math.round(result.xp));
 
@@ -67,6 +110,16 @@ const buildNextStats = (current: PlayerStats, result: GameResultInput): PlayerSt
     draws: current.draws + (result.outcome === 'draw' ? 1 : 0),
   };
 };
+
+const buildSessionRecord = (result: GameResultInput): GameSessionRecord => ({
+  id: crypto.randomUUID(),
+  gameId: result.gameId,
+  outcome: result.outcome,
+  xp: Math.max(0, Math.round(result.xp)),
+  score: result.score ?? null,
+  metadata: result.metadata ?? {},
+  playedAt: new Date().toISOString(),
+});
 
 const getPresenceId = () => {
   const existing = sessionStorage.getItem(PRESENCE_SESSION_KEY);
@@ -107,9 +160,11 @@ const toPlayerRow = (user: User, stats: PlayerStats) => {
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<PlayerStats>(loadGuestStats);
+  const [sessions, setSessions] = useState<GameSessionRecord[]>(loadGuestSessions);
   const [livePlayers, setLivePlayers] = useState(1);
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [lastAward, setLastAward] = useState<XpAward | null>(null);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -121,6 +176,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
       if (!currentUser) {
         setStats(loadGuestStats());
+        setSessions(loadGuestSessions());
         setAuthReady(true);
         return;
       }
@@ -138,6 +194,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         setStats(nextStats);
         const { error: upsertError } = await client.from('players').upsert(toPlayerRow(currentUser, nextStats));
         if (upsertError) throw upsertError;
+
+        const { data: sessionData, error: sessionError } = await client
+          .from('game_sessions')
+          .select('id, game_id, outcome, xp, score, metadata, played_at')
+          .eq('user_id', currentUser.id)
+          .order('played_at', { ascending: false })
+          .limit(SESSION_LIMIT);
+
+        if (sessionError) throw sessionError;
+        setSessions((sessionData ?? []).map(normalizeSession).filter((session): session is GameSessionRecord => Boolean(session)));
       } catch (error) {
         console.error('Player profile load failed:', error);
         setAuthError('Could not load cloud player stats. Guest stats are still available.');
@@ -218,7 +284,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const recordGameResult = useCallback(
     (result: GameResultInput) => {
       const nextStats = buildNextStats(stats, result);
+      const nextSession = buildSessionRecord(result);
+      const nextSessions = [nextSession, ...sessions].slice(0, SESSION_LIMIT);
       setStats(nextStats);
+      setSessions(nextSessions);
+      setLastAward({ gameId: result.gameId, xp: Math.max(0, Math.round(result.xp)), outcome: result.outcome });
 
       if (user) {
         void persistCloudResult(nextStats, result).catch((error) => {
@@ -227,9 +297,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         });
       } else {
         saveGuestStats(nextStats);
+        saveGuestSessions(nextSessions);
       }
     },
-    [persistCloudResult, stats, user]
+    [persistCloudResult, sessions, stats, user]
   );
 
   const signInWithGoogle = useCallback(async () => {
@@ -253,6 +324,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }, []);
 
+  const dismissAward = useCallback(() => {
+    setLastAward(null);
+  }, []);
+
   const value = useMemo<PlayerContextValue>(
     () => ({
       user,
@@ -261,11 +336,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       authReady,
       authError,
       cloudEnabled: isSupabaseConfigured,
+      sessions,
+      displayName: user ? getDisplayName(user) : 'Guest player',
+      avatarUrl: user ? getAvatarUrl(user) : null,
+      lastAward,
+      dismissAward,
       signInWithGoogle,
       signOutPlayer,
       recordGameResult,
     }),
-    [authError, authReady, livePlayers, recordGameResult, signInWithGoogle, signOutPlayer, stats, user]
+    [authError, authReady, dismissAward, lastAward, livePlayers, recordGameResult, sessions, signInWithGoogle, signOutPlayer, stats, user]
   );
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;

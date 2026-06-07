@@ -123,6 +123,9 @@ const Header: React.FC = () => {
             <Button sx={navButtonSx(isActive('/about'))} onClick={() => navigateTo('/about')}>
               About
             </Button>
+            <Button sx={navButtonSx(isActive('/profile'))} onClick={() => navigateTo('/profile')}>
+              Profile
+            </Button>
             <PlayerStatus />
           </Box>
         ) : (
@@ -162,6 +165,9 @@ const Header: React.FC = () => {
 
                   <ListItemButton selected={isActive('/about')} onClick={() => navigateTo('/about')}>
                     <ListItemText primary="About" />
+                  </ListItemButton>
+                  <ListItemButton selected={isActive('/profile')} onClick={() => navigateTo('/profile')}>
+                    <ListItemText primary="Profile" />
                   </ListItemButton>
                 </List>
                 <Box sx={{ px: 2, pb: 2 }}>

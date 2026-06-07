@@ -11,7 +11,8 @@ const PythonHangman = lazy(() => import('./pages/games/PythonHangman'));
 const TicTacToe = lazy(() => import('./pages/games/TicTacToe'));
 const MemoryMatch = lazy(() => import('./pages/games/MemoryMatch'));
 const NumberGuess = lazy(() => import('./pages/games/NumberGuess'));
-const WordMatch = lazy(() => import('./pages/games/WordMatch'));
+const ContextClimb = lazy(() => import('./pages/games/ContextClimb'));
+const Profile = lazy(() => import('./pages/Profile'));
 import { Box, CircularProgress } from '@mui/material';
 
 const PageLoader = () => (
@@ -34,7 +35,8 @@ const AppRouter = () => {
                     <Route path="/games/tic-tac-toe" element={<TicTacToe />} />
                     <Route path="/games/memory-match" element={<MemoryMatch />} />
                     <Route path="/games/number-guess" element={<NumberGuess />} />
-                    <Route path="/games/word-match" element={<WordMatch />} />
+                    <Route path="/games/context-climb" element={<ContextClimb />} />
+                    <Route path="/profile" element={<Profile />} />
                 </Routes>
             </Suspense>
         </Box >

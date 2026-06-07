@@ -24,7 +24,7 @@ This project is a recruiter-facing frontend case study because it shows more tha
 - Tic Tac Toe
 - Memory Match
 - Number Guess
-- Word Match
+- Context Climb
 
 ## Tech Stack
 
@@ -53,6 +53,8 @@ Create a `.env.local` file when you want Google login, cloud stats, and live-pla
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
+
+You can use [supabase.env.example](C:/Users/saumy/Code/react/arcade-stack/supabase.env.example) as the template.
 
 Enable Google as a sign-in provider in Supabase Auth. Then run [docs/supabase-schema.sql](C:/Users/saumy/Code/react/arcade-stack/docs/supabase-schema.sql) in the Supabase SQL editor.
 

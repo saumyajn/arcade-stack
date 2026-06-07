@@ -6,6 +6,7 @@ import { theme } from './theme';
 import PuzzleBackground from './components/PuzzleBg';
 import Footer from './components/Footer';
 import { PlayerProvider } from './context/PlayerContext';
+import XpToast from './components/XpToast';
 
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
             <AppRouter />
           </Container>
           <Footer />
+          <XpToast />
         </Box>
       </PlayerProvider>
     </ThemeProvider>

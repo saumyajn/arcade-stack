@@ -87,11 +87,13 @@ export const coverArt = {
     <text x="320" y="260" text-anchor="middle" font-size="24" font-family="Arial" font-weight="800" fill="${palette.cyan}">1 - 100</text>
     <text x="320" y="350" text-anchor="middle" font-size="30" font-family="Arial" font-weight="800" fill="${palette.text}">BOT NUMBER</text>
   `),
-  'word-match': svg(`
+  'context-climb': svg(`
     <rect x="100" y="105" width="240" height="80" rx="18" fill="${palette.panel}" filter="url(#shadow)"/>
     <rect x="300" y="215" width="240" height="80" rx="18" fill="${palette.panel}" filter="url(#shadow)"/>
     <path d="M245 185 C300 240 305 155 365 215" fill="none" stroke="${palette.cyan}" stroke-width="10" stroke-linecap="round"/>
-    <text x="220" y="155" text-anchor="middle" font-size="34" font-family="Arial" font-weight="900" fill="${palette.text}">CLUE</text>
-    <text x="420" y="265" text-anchor="middle" font-size="34" font-family="Arial" font-weight="900" fill="${palette.amber}">WORD</text>
+    <circle cx="490" cy="132" r="36" fill="${palette.amber}" opacity="0.92"/>
+    <text x="220" y="155" text-anchor="middle" font-size="34" font-family="Arial" font-weight="900" fill="${palette.text}">#18</text>
+    <text x="420" y="265" text-anchor="middle" font-size="34" font-family="Arial" font-weight="900" fill="${palette.amber}">#1</text>
+    <text x="320" y="348" text-anchor="middle" font-size="30" font-family="Arial" font-weight="800" fill="${palette.text}">CONTEXT CLIMB</text>
   `),
 };
