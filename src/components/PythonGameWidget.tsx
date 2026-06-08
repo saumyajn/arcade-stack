@@ -6,14 +6,22 @@ import SendIcon from '@mui/icons-material/Send';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import usePython from '../hooks/usePython';
 import GamePageShell from './GamePageShell';
+import { usePlayer } from '../hooks/usePlayer';
 
 interface PythonGameWidgetProps {
   title: string;
   description: string;
   scriptPath: string;
+  gameId: string;
+  winXp?: number;
+  lossXp?: number;
 }
 
-export default function PythonGameWidget({ title, description, scriptPath }: PythonGameWidgetProps) {
+const isWinOutput = (output: string) => /you\s+won|you\s+win|found the treasure|congratulations/i.test(output);
+const isLossOutput = (output: string) => /you\s+lose|game\s+over|rip|destroyed/i.test(output);
+
+export default function PythonGameWidget({ title, description, scriptPath, gameId, winXp = 120, lossXp = 15 }: PythonGameWidgetProps) {
+  const { recordGameResult } = usePlayer();
   const { isReady, runScript } = usePython();
   const [code, setCode] = useState("");
   const [output, setOutput] = useState<string>("");
@@ -23,6 +31,7 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
   // New States for Interactive Input
   const [gameStarted, setGameStarted] = useState(false);
   const [command, setCommand] = useState("");
+  const [resultRecorded, setResultRecorded] = useState(false);
 
   useEffect(() => {
     fetch(scriptPath)
@@ -44,6 +53,7 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
     if (isStart) {
       setOutput(""); // Clear output for a new game
       setGameStarted(true);
+      setResultRecorded(false);
     } else {
       // Append what the user just typed into the terminal
       setOutput(prev => prev + `\n> ${currentCmd}\n\n`);
@@ -55,7 +65,16 @@ export default function PythonGameWidget({ title, description, scriptPath }: Pyt
       // Pass isStart as the 'reset' flag to reset the python 'step' variable
       const result = await runScript(code, currentCmd, isStart);
       if (result) {
-        setOutput(prev => prev + (result as string));
+        const resultText = result as string;
+        setOutput(prev => prev + resultText);
+
+        if (!isStart && !resultRecorded && isWinOutput(resultText)) {
+          recordGameResult({ gameId, outcome: 'win', xp: winXp });
+          setResultRecorded(true);
+        } else if (!isStart && !resultRecorded && isLossOutput(resultText)) {
+          recordGameResult({ gameId, outcome: 'loss', xp: lossXp });
+          setResultRecorded(true);
+        }
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {

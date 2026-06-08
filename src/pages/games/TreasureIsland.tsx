@@ -6,6 +6,9 @@ export default function TreasureIsland() {
             title="Treasure Island" 
             description="A classic text-based adventure game written in Python. Make choices to find the hidden treasure!" 
             scriptPath="/treasure_island.py" 
+            gameId="treasure-island"
+            winXp={140}
+            lossXp={10}
         />
     );
 }

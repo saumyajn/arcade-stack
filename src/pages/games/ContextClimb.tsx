@@ -1,6 +1,15 @@
-import { Alert, Box, Button, Chip, LinearProgress, Stack, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  LinearProgress,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import GamePageShell from '../../components/GamePageShell';
 import { usePlayer } from '../../hooks/usePlayer';
 
@@ -12,12 +21,26 @@ type SemanticWord = {
 
 type TargetWord = SemanticWord & {
   starter: string;
+  hints: string[];
 };
 
 type GuessResult = {
   word: string;
   rank: number;
   closeness: number;
+  status: string;
+};
+
+type RelatedWord = {
+  word: string;
+  score: number;
+  rank: number;
+};
+
+type SemanticModel = {
+  related: RelatedWord[];
+  lookup: Map<string, RelatedWord>;
+  source: 'api' | 'fallback';
 };
 
 const lexicon: SemanticWord[] = [
@@ -45,17 +68,96 @@ const lexicon: SemanticWord[] = [
   { word: 'library', family: 'daily', vector: { book: 1, quiet: 0.8, knowledge: 0.9, place: 0.7 } },
   { word: 'kitchen', family: 'daily', vector: { food: 0.9, home: 1, routine: 0.6, place: 0.8 } },
   { word: 'market', family: 'daily', vector: { food: 0.5, place: 0.8, crowd: 0.6, trade: 0.9 } },
+  { word: 'doctor', family: 'health', vector: { health: 1, care: 0.9, science: 0.4, person: 0.7 } },
+  { word: 'hospital', family: 'health', vector: { health: 1, care: 0.9, place: 0.8, science: 0.4 } },
+  { word: 'teacher', family: 'learning', vector: { knowledge: 0.9, school: 1, person: 0.8, language: 0.4 } },
+  { word: 'money', family: 'commerce', vector: { trade: 1, value: 1, work: 0.5, city: 0.3 } },
+  { word: 'bank', family: 'commerce', vector: { trade: 0.8, value: 0.9, place: 0.5, city: 0.5 } },
+  { word: 'chair', family: 'objects', vector: { object: 1, home: 0.7, comfort: 0.7, place: 0.3 } },
+  { word: 'table', family: 'objects', vector: { object: 1, home: 0.8, food: 0.4, place: 0.3 } },
+  { word: 'car', family: 'travel', vector: { travel: 0.9, machine: 0.8, city: 0.5, motion: 0.8 } },
+  { word: 'train', family: 'travel', vector: { travel: 1, machine: 0.7, city: 0.7, motion: 0.8 } },
+  { word: 'moon', family: 'space', vector: { sky: 1, night: 1, space: 1, quiet: 0.4 } },
+  { word: 'star', family: 'space', vector: { sky: 1, night: 0.9, space: 1, light: 0.8 } },
+  { word: 'dog', family: 'animals', vector: { animal: 1, home: 0.6, person: 0.4, motion: 0.4 } },
+  { word: 'cat', family: 'animals', vector: { animal: 1, home: 0.7, quiet: 0.5, motion: 0.2 } },
+  { word: 'soccer', family: 'sports', vector: { sport: 1, game: 0.8, motion: 0.8, crowd: 0.6 } },
+  { word: 'tennis', family: 'sports', vector: { sport: 1, game: 0.8, motion: 0.7, challenge: 0.5 } },
+  { word: 'city', family: 'places', vector: { city: 1, place: 0.9, crowd: 0.6, trade: 0.5 } },
+  { word: 'village', family: 'places', vector: { place: 0.9, home: 0.7, quiet: 0.6, nature: 0.4 } },
+  { word: 'happy', family: 'emotion', vector: { emotion: 1, fun: 0.8, light: 0.4, energy: 0.6 } },
+  { word: 'sad', family: 'emotion', vector: { emotion: 1, quiet: 0.7, depth: 0.3, night: 0.3 } },
 ];
 
 const targets: TargetWord[] = [
-  { ...lexicon.find((item) => item.word === 'ocean')!, starter: 'Think broadly: places, forces, objects, and activities can all be near it.' },
-  { ...lexicon.find((item) => item.word === 'python')!, starter: 'This one lives close to automation, data, and code.' },
-  { ...lexicon.find((item) => item.word === 'chess')!, starter: 'Try words around play, logic, boards, and strategy.' },
-  { ...lexicon.find((item) => item.word === 'piano')!, starter: 'Start with sound, practice, art, and instruments.' },
-  { ...lexicon.find((item) => item.word === 'library')!, starter: 'This target is near quiet places, learning, and collections.' },
+  {
+    ...lexicon.find((item) => item.word === 'ocean')!,
+    starter: 'Think broadly: places, forces, objects, and activities can all be near it.',
+    hints: [
+      'The target belongs to the nature family.',
+      'Water-related words should move you closer.',
+      'Try thinking about large places, depth, waves, or travel.',
+      'One close neighbor is river.',
+      'The answer starts with O and has 5 letters.',
+    ],
+  },
+  {
+    ...lexicon.find((item) => item.word === 'python')!,
+    starter: 'This one lives close to automation, data, and code.',
+    hints: [
+      'The target belongs to the technology family.',
+      'Programming and data words should rank better.',
+      'Try language, script, automation, or backend-adjacent guesses.',
+      'One close neighbor is algorithm.',
+      'The answer starts with P and has 6 letters.',
+    ],
+  },
+  {
+    ...lexicon.find((item) => item.word === 'chess')!,
+    starter: 'Try words around play, logic, boards, and strategy.',
+    hints: [
+      'The target belongs to the games family.',
+      'Strategy and board words should move you closer.',
+      'Try logic, puzzle, battle, or competition-adjacent guesses.',
+      'One close neighbor is puzzle.',
+      'The answer starts with C and has 5 letters.',
+    ],
+  },
+  {
+    ...lexicon.find((item) => item.word === 'piano')!,
+    starter: 'Start with sound, practice, art, and instruments.',
+    hints: [
+      'The target belongs to the music family.',
+      'Sound and instrument words should rank better.',
+      'Try rhythm, concert, guitar, or performance-adjacent guesses.',
+      'One close neighbor is guitar.',
+      'The answer starts with P and has 5 letters.',
+    ],
+  },
+  {
+    ...lexicon.find((item) => item.word === 'library')!,
+    starter: 'This target is near quiet places, learning, and collections.',
+    hints: [
+      'The target belongs to the daily/learning area.',
+      'Knowledge and quiet-place words should move you closer.',
+      'Try book, teacher, school, study, or place-adjacent guesses.',
+      'One close neighbor is teacher.',
+      'The answer starts with L and has 7 letters.',
+    ],
+  },
 ];
 
 const pickTarget = () => targets[Math.floor(Math.random() * targets.length)];
+
+const seededValue = (word: string, key: string) => {
+  let hash = 2166136261;
+  const source = `${word}:${key}`;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) / 4294967295;
+};
 
 const cosine = (a: Record<string, number>, b: Record<string, number>) => {
   const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
@@ -72,39 +174,114 @@ const cosine = (a: Record<string, number>, b: Record<string, number>) => {
   return dot / (Math.sqrt(aMag) * Math.sqrt(bMag) || 1);
 };
 
-const inferVector = (word: string) => {
-  const known = lexicon.find((item) => item.word === word);
-  if (known) return known.vector;
+const getStatus = (rank: number) => {
+  if (rank === 1) return 'Solved';
+  if (rank <= 10) return 'Burning';
+  if (rank <= 35) return 'Very close';
+  if (rank <= 90) return 'Close';
+  if (rank <= 180) return 'Warm';
+  if (rank <= 350) return 'Searching';
+  if (rank <= 650) return 'Cold';
+  return 'Distant';
+};
 
-  const related = lexicon.find((item) => item.word.includes(word) || word.includes(item.word));
-  if (related) return related.vector;
+const scoreToRank = (score: number, guess: string) => {
+  const normalized = Math.max(0, Math.min(1, score));
+  const jitter = Math.floor(seededValue(guess, 'rank-jitter') * 13);
+  return Math.max(2, Math.min(999, Math.round(2 + (1 - normalized) ** 2.15 * 980 + jitter)));
+};
+
+const cleanWord = (word: string) => word.trim().toLowerCase().replace(/[^a-z]/g, '');
+
+const toSemanticModel = (items: Array<{ word: string; score?: number }>, source: SemanticModel['source']): SemanticModel => {
+  const filtered = items
+    .map((item) => ({ word: cleanWord(item.word), score: Number(item.score) || 1 }))
+    .filter((item) => item.word.length > 1);
+  const maxScore = Math.max(...filtered.map((item) => item.score), 1);
+  const related = filtered.map((item, index) => ({
+    word: item.word,
+    score: item.score / maxScore,
+    rank: index + 2,
+  }));
 
   return {
-    unknown: 0.6,
-    length: Math.min(1, word.length / 10),
-    vowel: (word.match(/[aeiou]/g)?.length ?? 0) / Math.max(1, word.length),
+    related,
+    lookup: new Map(related.map((item) => [item.word, item])),
+    source,
   };
 };
 
-const scoreGuess = (guess: string, target: TargetWord): GuessResult => {
-  if (guess === target.word) return { word: guess, rank: 1, closeness: 1 };
+const fetchRelatedWords = async (word: string, max = 1000) => {
+  const response = await fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(word)}&max=${max}`);
+  if (!response.ok) throw new Error(`Datamuse failed with ${response.status}`);
+  return response.json() as Promise<Array<{ word: string; score?: number }>>;
+};
 
-  const rankedWords = lexicon
-    .map((item) => ({ word: item.word, closeness: cosine(item.vector, target.vector) }))
-    .sort((a, b) => b.closeness - a.closeness);
+const buildFallbackModel = (target: TargetWord) => {
+  const related = lexicon
+    .filter((item) => item.word !== target.word)
+    .map((item) => ({ word: item.word, score: cosine(item.vector, target.vector) * 1000 }))
+    .sort((a, b) => b.score - a.score);
+  return toSemanticModel(related, 'fallback');
+};
 
-  const knownRank = rankedWords.findIndex((item) => item.word === guess);
-  if (knownRank >= 0) {
+const buildSemanticModel = async (target: TargetWord) => {
+  try {
+    const data = await fetchRelatedWords(target.word, 1000);
+    const filtered = data.filter((item) => cleanWord(item.word) !== target.word);
+    if (filtered.length < 50) throw new Error('Semantic model returned too few words');
+    return toSemanticModel(filtered, 'api');
+  } catch (error) {
+    console.error('Semantic model failed:', error);
+    return buildFallbackModel(target);
+  }
+};
+
+const scoreGuess = async (
+  guess: string,
+  target: TargetWord,
+  model: SemanticModel,
+  guessCache: Map<string, Array<{ word: string; score?: number }>>
+): Promise<GuessResult> => {
+  if (guess === target.word) return { word: guess, rank: 1, closeness: 1, status: 'Solved' };
+
+  const directMatch = model.lookup.get(guess);
+  if (directMatch) {
     return {
       word: guess,
-      rank: knownRank + 1,
-      closeness: rankedWords[knownRank].closeness,
+      rank: directMatch.rank,
+      closeness: directMatch.score,
+      status: getStatus(directMatch.rank),
     };
   }
 
-  const closeness = cosine(inferVector(guess), target.vector) * 0.62;
-  const rank = rankedWords.filter((item) => item.closeness > closeness).length + 1;
-  return { word: guess, rank: Math.max(rank, 8), closeness };
+  try {
+    let guessRelated = guessCache.get(guess);
+    if (!guessRelated) {
+      guessRelated = await fetchRelatedWords(guess, 300);
+      guessCache.set(guess, guessRelated);
+    }
+
+    const targetMatchIndex = guessRelated.findIndex((item) => cleanWord(item.word) === target.word);
+    if (targetMatchIndex >= 0) {
+      const score = Math.max(0.08, 0.72 - targetMatchIndex / 420);
+      const rank = scoreToRank(score, guess);
+      return { word: guess, rank, closeness: score, status: getStatus(rank) };
+    }
+
+    const overlapScore = guessRelated.reduce((score, item, index) => {
+      const modelItem = model.lookup.get(cleanWord(item.word));
+      if (!modelItem) return score;
+      return score + modelItem.score * (1 / (index + 8));
+    }, 0);
+    const closeness = Math.max(0.02, Math.min(0.68, overlapScore));
+    const rank = scoreToRank(closeness, guess);
+    return { word: guess, rank, closeness, status: getStatus(rank) };
+  } catch {
+    const score = seededValue(`${guess}:${target.word}`, 'fallback-score') * 0.42;
+    const rank = scoreToRank(score, guess);
+    return { word: guess, rank, closeness: score, status: getStatus(rank) };
+  }
 };
 
 const getHeatColor = (rank: number) => {
@@ -119,19 +296,48 @@ export default function ContextClimb() {
   const [target, setTarget] = useState(pickTarget);
   const [guess, setGuess] = useState('');
   const [guesses, setGuesses] = useState<GuessResult[]>([]);
+  const [semanticModel, setSemanticModel] = useState<SemanticModel>(() => buildFallbackModel(target));
+  const [modelLoading, setModelLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const guessCache = useRef(new Map<string, Array<{ word: string; score?: number }>>());
   const solved = guesses.some((item) => item.rank === 1);
+  const wrongGuesses = guesses.filter((item) => item.rank !== 1).length;
   const bestGuess = guesses.reduce<GuessResult | null>((best, item) => (!best || item.rank < best.rank ? item : best), null);
 
   const sortedGuesses = useMemo(() => [...guesses].sort((a, b) => a.rank - b.rank), [guesses]);
+  const hintIndex = Math.min(Math.floor(wrongGuesses / 5) - 1, target.hints.length - 1);
+  const activeHint = hintIndex >= 0 ? target.hints[hintIndex] : target.starter;
+  const guessesTowardNextHint = wrongGuesses % 5;
+  const nextHintIn = guessesTowardNextHint === 0 ? 5 : 5 - guessesTowardNextHint;
+  const hasMoreHints = hintIndex < target.hints.length - 1;
 
-  const submit = () => {
-    const cleaned = guess.trim().toLowerCase().replace(/[^a-z]/g, '');
-    if (!cleaned || solved || guesses.some((item) => item.word === cleaned)) return;
+  useEffect(() => {
+    let cancelled = false;
+    setModelLoading(true);
+    guessCache.current.clear();
+    buildSemanticModel(target)
+      .then((model) => {
+        if (!cancelled) setSemanticModel(model);
+      })
+      .finally(() => {
+        if (!cancelled) setModelLoading(false);
+      });
 
-    const result = scoreGuess(cleaned, target);
+    return () => {
+      cancelled = true;
+    };
+  }, [target]);
+
+  const submit = async () => {
+    const cleaned = cleanWord(guess);
+    if (!cleaned || solved || modelLoading || submitting || guesses.some((item) => item.word === cleaned)) return;
+
+    setSubmitting(true);
+    const result = await scoreGuess(cleaned, target, semanticModel, guessCache.current);
     const nextGuesses = [...guesses, result];
     setGuesses(nextGuesses);
     setGuess('');
+    setSubmitting(false);
 
     if (result.rank === 1) {
       recordGameResult({
@@ -158,10 +364,15 @@ export default function ContextClimb() {
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '0.9fr 1.1fr' }, gap: 3 }}>
         <Box>
           <Alert severity={solved ? 'success' : 'info'} sx={{ mb: 2 }}>
-            {solved ? `Solved in ${guesses.length} guesses.` : target.starter}
+            {solved ? `Solved in ${guesses.length} guesses.` : activeHint}
           </Alert>
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, mb: 2 }}>
             <Chip label={`${guesses.length} guesses`} color="primary" />
+            <Chip label={`${wrongGuesses} wrong`} variant="outlined" />
+            {!solved && hasMoreHints && (
+              <Chip label={wrongGuesses < 5 ? 'Hint unlocks at 5 wrong guesses' : `Next hint in ${nextHintIn}`} variant="outlined" />
+            )}
+            <Chip label={semanticModel.source === 'api' ? 'Large vocabulary' : 'Offline fallback'} variant="outlined" />
             <Chip label={bestGuess ? `Best rank: #${bestGuess.rank}` : 'No rank yet'} color="secondary" variant="outlined" />
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
@@ -169,13 +380,13 @@ export default function ContextClimb() {
               fullWidth
               label="Enter a related word"
               value={guess}
-              disabled={solved}
-              helperText="Try broad concepts first, then narrow toward the best ranks."
+              disabled={solved || modelLoading || submitting}
+              helperText={modelLoading ? 'Loading semantic ranking model...' : 'Try broad concepts first, then narrow toward the best ranks.'}
               onChange={(event) => setGuess(event.target.value)}
               onKeyDown={(event) => event.key === 'Enter' && submit()}
             />
-            <Button variant="contained" onClick={submit} disabled={!guess || solved} sx={{ minWidth: 132 }}>
-              Guess
+            <Button variant="contained" onClick={submit} disabled={!guess || solved || modelLoading || submitting} sx={{ minWidth: 132 }}>
+              {submitting ? 'Ranking' : 'Guess'}
             </Button>
           </Stack>
           <Button variant="outlined" onClick={reset} sx={{ mt: 2 }}>
@@ -202,13 +413,16 @@ export default function ContextClimb() {
                   <Typography variant="subtitle2" sx={{ textTransform: 'capitalize' }}>
                     {item.word}
                   </Typography>
-                  <Chip
-                    icon={<TrendingUpIcon />}
-                    label={`#${item.rank}`}
-                    size="small"
-                    sx={{ color: getHeatColor(item.rank), borderColor: getHeatColor(item.rank) }}
-                    variant="outlined"
-                  />
+                  <Stack direction="row" spacing={0.75} alignItems="center">
+                    <Chip label={item.status} size="small" variant="outlined" />
+                    <Chip
+                      icon={<TrendingUpIcon />}
+                      label={`#${item.rank}`}
+                      size="small"
+                      sx={{ color: getHeatColor(item.rank), borderColor: getHeatColor(item.rank) }}
+                      variant="outlined"
+                    />
+                  </Stack>
                 </Stack>
                 <LinearProgress
                   variant="determinate"

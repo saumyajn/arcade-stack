@@ -131,11 +131,17 @@ export default function Profile() {
         </NeonPanel>
 
         <NeonPanel glow="secondary" sx={{ p: 2.5 }}>
-          <Typography variant="h5" sx={{ mb: 2 }}>
-            Recent Game Sessions
-          </Typography>
-          <TableContainer>
-            <Table size="small" aria-label="Recent game sessions">
+          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" gap={1} sx={{ mb: 2 }}>
+            <Box>
+              <Typography variant="h5">Game Session History</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Showing all saved sessions for this player.
+              </Typography>
+            </Box>
+            <Chip label={`${sessions.length} saved`} color="secondary" variant="outlined" />
+          </Stack>
+          <TableContainer sx={{ maxHeight: 560 }}>
+            <Table size="small" stickyHeader aria-label="Game session history">
               <TableHead>
                 <TableRow>
                   <TableCell>Game</TableCell>

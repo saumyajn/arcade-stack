@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Grid, Button, Paper, Alert, Stack } from '@mui/material';
 import useBattleshipGame, { ships,  } from '../../helpers/battleshipHelper';
 import GamePageShell from '../../components/GamePageShell';
+import { usePlayer } from '../../hooks/usePlayer';
 // import { useHighScore } from '../../hooks/useHighScore'; // Uncomment if hook is created
 
 const GRID_SIZE = 10;
@@ -51,6 +52,8 @@ const GridCell = React.memo(({
 });
 
 const Battleship = () => {
+  const { recordGameResult } = usePlayer();
+  const [resultRecorded, setResultRecorded] = React.useState(false);
   const {
     gameState,
     placedShips,
@@ -68,6 +71,23 @@ const Battleship = () => {
   } = useBattleshipGame();
 
   // const highScore = useHighScore('battleship', winner === 'player' ? 100 : 0); // Example usage
+
+  React.useEffect(() => {
+    if (gameState !== 'gameOver' || resultRecorded) return;
+
+    recordGameResult({
+      gameId: 'battleship',
+      outcome: winner === 'player' ? 'win' : 'loss',
+      xp: winner === 'player' ? 160 : 25,
+      metadata: { playerAttacks: attacks.length, cpuAttacks: cpuAttacks.length },
+    });
+    setResultRecorded(true);
+  }, [attacks.length, cpuAttacks.length, gameState, recordGameResult, resultRecorded, winner]);
+
+  const handleResetGame = () => {
+    resetGame();
+    setResultRecorded(false);
+  };
 
   // --- Helper to calculate cell status for rendering ---
   const getCellStatus = (x: number, y: number, isPlayerBoard: boolean): 'empty' | 'ship' | 'hit' | 'miss' => {
@@ -123,7 +143,7 @@ const Battleship = () => {
             <Button color="error" onClick={() => setPlacedShips([])}>Clear Board</Button>
           </>
         ) : (
-          <Button variant="contained" color="warning" onClick={resetGame}>
+          <Button variant="contained" color="warning" onClick={handleResetGame}>
             Reset Game
           </Button>
         )}

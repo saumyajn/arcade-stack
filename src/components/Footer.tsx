@@ -19,7 +19,29 @@ export default function Footer() {
         boxShadow: '0 -18px 45px rgba(0,0,0,0.22)',
       }}
     >
-      <Box sx={{ mb: 1 }}>
+      <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.5 }}>
+        <IconButton
+          component="a"
+          href="https://saumyajain.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit Saumya Jain portfolio"
+          sx={{
+            width: 44,
+            height: 44,
+            border: '1px solid',
+            borderColor: 'primary.main',
+            color: 'primary.main',
+            fontSize: '0.86rem',
+            fontWeight: 900,
+            letterSpacing: 0,
+            '&:hover': {
+              bgcolor: 'rgba(139,92,246,0.14)',
+            },
+          }}
+        >
+          SJ
+        </IconButton>
         <IconButton
           component="a"
           href="https://github.com/saumyajn"
@@ -40,8 +62,18 @@ export default function Footer() {
           <EmailIcon />
         </IconButton>
       </Box>
-      <Typography variant="body2">
-        Built by Saumya Jain - Arcade Stack (c) {new Date().getFullYear()}
+      <Typography variant="body2" color="text.secondary">
+        Built by{' '}
+        <Box
+          component="a"
+          href="https://saumyajain.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{ color: 'primary.main', fontWeight: 800, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+        >
+          Saumya Jain
+        </Box>{' '}
+        - Arcade Stack (c) {new Date().getFullYear()}
       </Typography>
     </Box>
   );

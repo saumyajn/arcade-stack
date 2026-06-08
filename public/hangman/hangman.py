@@ -1,5 +1,4 @@
 import random
-import json
 
 backup_word_list = [
     "abruptly",
@@ -292,9 +291,6 @@ logo = r"""
                     __/ |                      
                    |___/    """
 
-# Import Pyodide's built-in fetch method instead of 'requests'
-from pyodide.http import open_url
-
 # 1. Initialize persistent state variables on the first run
 if "step" not in globals():
     step = 0
@@ -313,14 +309,9 @@ if step == 0:
     print(logo)
     print("Welcome!\nA word has been randomly generated. Lets play!!")
 
-    # Fetch random words using Pyodide's native URL opener
-    try:
-        response = open_url(
-            "https://random-word-api.herokuapp.com/word?number=100&diff=1&length=5"
-        )
-        word_list = json.loads(response.read())
-    except:
-        word_list = backup_word_list
+    # Keep startup instant in the browser. Remote word APIs can stall inside
+    # Pyodide and make the game look like it never loaded.
+    word_list = backup_word_list
 
     random_word = random.choice(word_list)
     word_len = len(random_word)

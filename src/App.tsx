@@ -7,6 +7,7 @@ import PuzzleBackground from './components/PuzzleBg';
 import Footer from './components/Footer';
 import { PlayerProvider } from './context/PlayerContext';
 import XpToast from './components/XpToast';
+import WinCelebration from './components/WinCelebration';
 
 
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
             <AppRouter />
           </Container>
           <Footer />
+          <WinCelebration />
           <XpToast />
         </Box>
       </PlayerProvider>

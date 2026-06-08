@@ -14,7 +14,7 @@ const GUEST_STATS_KEY = 'arcade-stack:guest-stats';
 const GUEST_SESSIONS_KEY = 'arcade-stack:guest-sessions';
 const PRESENCE_SESSION_KEY = 'arcade-stack:presence-id';
 const LEVEL_XP = 250;
-const SESSION_LIMIT = 30;
+const SESSION_PAGE_SIZE = 1000;
 
 const initialStats: PlayerStats = {
   xp: 0,
@@ -95,7 +95,7 @@ const loadGuestSessions = () => {
 };
 
 const saveGuestSessions = (sessions: GameSessionRecord[]) => {
-  localStorage.setItem(GUEST_SESSIONS_KEY, JSON.stringify(sessions.slice(0, SESSION_LIMIT)));
+  localStorage.setItem(GUEST_SESSIONS_KEY, JSON.stringify(sessions));
 };
 
 const buildNextStats = (current: PlayerStats, result: GameResultInput): PlayerStats => {
@@ -195,15 +195,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const { error: upsertError } = await client.from('players').upsert(toPlayerRow(currentUser, nextStats));
         if (upsertError) throw upsertError;
 
-        const { data: sessionData, error: sessionError } = await client
-          .from('game_sessions')
-          .select('id, game_id, outcome, xp, score, metadata, played_at')
-          .eq('user_id', currentUser.id)
-          .order('played_at', { ascending: false })
-          .limit(SESSION_LIMIT);
+        const allSessions: unknown[] = [];
+        let from = 0;
+        let hasMore = true;
 
-        if (sessionError) throw sessionError;
-        setSessions((sessionData ?? []).map(normalizeSession).filter((session): session is GameSessionRecord => Boolean(session)));
+        while (hasMore) {
+          const { data: sessionData, error: sessionError } = await client
+            .from('game_sessions')
+            .select('id, game_id, outcome, xp, score, metadata, played_at')
+            .eq('user_id', currentUser.id)
+            .order('played_at', { ascending: false })
+            .range(from, from + SESSION_PAGE_SIZE - 1);
+
+          if (sessionError) throw sessionError;
+
+          const page = sessionData ?? [];
+          allSessions.push(...page);
+          hasMore = page.length === SESSION_PAGE_SIZE;
+          from += SESSION_PAGE_SIZE;
+        }
+
+        setSessions(allSessions.map(normalizeSession).filter((session): session is GameSessionRecord => Boolean(session)));
       } catch (error) {
         console.error('Player profile load failed:', error);
         setAuthError('Could not load cloud player stats. Guest stats are still available.');
@@ -285,7 +297,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     (result: GameResultInput) => {
       const nextStats = buildNextStats(stats, result);
       const nextSession = buildSessionRecord(result);
-      const nextSessions = [nextSession, ...sessions].slice(0, SESSION_LIMIT);
+      const nextSessions = [nextSession, ...sessions];
       setStats(nextStats);
       setSessions(nextSessions);
       setLastAward({ gameId: result.gameId, xp: Math.max(0, Math.round(result.xp)), outcome: result.outcome });

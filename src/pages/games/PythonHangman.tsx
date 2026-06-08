@@ -6,6 +6,9 @@ export default function PythonHangman() {
             title="Hangman" 
             description="The classic word guessing game, powered by Python in your browser." 
             scriptPath="/hangman/hangman.py" 
+            gameId="hangman"
+            winXp={120}
+            lossXp={15}
         />
     );
 }
