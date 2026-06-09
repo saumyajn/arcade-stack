@@ -13,6 +13,7 @@ const MemoryMatch = lazy(() => import('./pages/games/MemoryMatch'));
 const NumberGuess = lazy(() => import('./pages/games/NumberGuess'));
 const ContextClimb = lazy(() => import('./pages/games/ContextClimb'));
 const Profile = lazy(() => import('./pages/Profile'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 import { Box, CircularProgress } from '@mui/material';
 
 const PageLoader = () => (
@@ -37,6 +38,7 @@ const AppRouter = () => {
                     <Route path="/games/number-guess" element={<NumberGuess />} />
                     <Route path="/games/context-climb" element={<ContextClimb />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="*" element={<NotFound />} />
                 </Routes>
             </Suspense>
         </Box >
